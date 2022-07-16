@@ -45,6 +45,30 @@ func main() {
 	detinationdirectory = githubactions.GetInput("detination-directory")
 	githubactions.AddMask(detinationdirectory)
 
+	if owner == "" {
+		githubactions.Fatalf("missing input 'owner'")
+	}
+	if repo == "" {
+		githubactions.Fatalf("missing input 'repo'")
+	}
+	if token == "" {
+		githubactions.Fatalf("missing input 'token'")
+	}
+
+	if file == "" {
+		fmt.Println("missing input 'file'")
+	}
+	if detinationfile == "" {
+		fmt.Println("missing input 'detinationfile file'")
+	}
+
+	if directory == "" {
+		fmt.Println("missing input 'directory'")
+	}
+	if detinationdirectory == "" {
+		fmt.Println("missing input 'detination-directory'")
+	}
+
 	branch = uuid.New().String()
 
 	// DO NOT EDIT BELOW THIS LINE
@@ -99,6 +123,7 @@ func ioReadDir(root string) ([]string, error) {
 }
 
 func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
+	fmt.Println("updating file:", file)
 	filecontent, err := readfile(file)
 	if err != nil {
 		return err
