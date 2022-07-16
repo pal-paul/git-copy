@@ -9,16 +9,16 @@ inputs:
   token: 
     description: 'github token'
     required: true
-  file-path: 
+  file_path: 
     description: 'path to the file in source repo'
     required: false
-  detination-file-path:
+  detination_file_path:
     description: 'path to the file to be copyed to destination repo'
     required: false
   directory: 
     description: 'path to the directory in source repo'
     required: false
-  detination-directory: 
+  detination_directory: 
     description: 'path to the directory to be copyed to destination repo'
     required: false
 runs:
