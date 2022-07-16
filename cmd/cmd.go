@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/pal-paul/git-copy/pkg/git"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/pal-paul/git-copy/pkg/git"
 )
 
 var (
@@ -25,6 +27,8 @@ func main() {
 		detinationfile      string
 		directory           string
 		detinationdirectory string
+		pullmessage         string
+		pulldescption       string
 	)
 	refbranch = "master"
 	owner = os.Getenv("INPUT_OWNER")
@@ -36,6 +40,9 @@ func main() {
 
 	directory = os.Getenv("INPUT_DIRECTORY")
 	detinationdirectory = os.Getenv("INPUT_DETINATION_DIRECTORY")
+
+	pullmessage = os.Getenv("INPUT_PULL_MESSAGE")
+	pulldescption = os.Getenv("INPUT_PULL_DESCRIPTION")
 
 	if owner == "" {
 		log.Fatal("owner is required")
@@ -63,6 +70,14 @@ func main() {
 	if file == "" && directory == "" {
 		log.Fatal("file or directory is required")
 		return
+	}
+
+	if pullmessage == "" {
+		pullmessage = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
+	}
+
+	if pulldescption == "" {
+		pulldescption = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
 	}
 
 	branch = uuid.New().String()
@@ -100,7 +115,7 @@ func main() {
 		}
 	}
 	if file != "" || directory != "" {
-		err := gitobj.CreatePullRequest(refbranch, branch, "updates", "just a test")
+		err := gitobj.CreatePullRequest(refbranch, branch, pullmessage, pulldescption)
 		if err != nil {
 			log.Fatal(err)
 		}

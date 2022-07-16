@@ -21,6 +21,12 @@ inputs:
   detination_directory: 
     description: 'path to the directory to be copyed to destination repo'
     required: false
+  pull_message:
+    description: 'pull request message'
+    required: false
+  pull_description:
+    description: 'pull request description'
+    required: false
 runs:
   using: docker
   image: Dockerfile
