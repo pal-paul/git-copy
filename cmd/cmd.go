@@ -47,25 +47,26 @@ func main() {
 		fmt.Println("missing input 'token'")
 	}
 
-	if file == "" {
-		fmt.Println("missing input 'file'")
-	}
-	if detinationfile == "" {
+	if file != "" && detinationfile == "" {
 		fmt.Println("missing input 'detinationfile file'")
+		return
 	}
 
-	if directory == "" {
-		fmt.Println("missing input 'directory'")
-	}
-	if detinationdirectory == "" {
+	if directory != "" && detinationdirectory == "" {
 		fmt.Println("missing input 'detination-directory'")
+		return
+	}
+
+	if file == "" && directory == "" {
+		fmt.Println("file or directory is required")
+		return
 	}
 
 	branch = uuid.New().String()
 
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
-	if file != "" {
+	if file != "" || directory != "" {
 		refBranch, err := gitobj.GetBranch(refbranch)
 		if err != nil {
 			fmt.Println(err)
@@ -74,7 +75,10 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		err = uploadFile(gitobj, file, detinationfile)
+	}
+
+	if file != "" {
+		err := uploadFile(gitobj, file, detinationfile)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -92,11 +96,15 @@ func main() {
 			}
 		}
 	}
-
-	err := gitobj.CreatePullRequest(refbranch, branch, "updates", "just a test")
-	if err != nil {
-		fmt.Println(err)
+	if file != "" || directory != "" {
+		err := gitobj.CreatePullRequest(refbranch, branch, "updates", "just a test")
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Println("nothing to do")
 	}
+
 }
 
 func ioReadDir(root string) ([]string, error) {
