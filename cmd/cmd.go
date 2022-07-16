@@ -74,7 +74,10 @@ func main() {
 		if err != nil {
 			fmt.Println(err)
 		}
-		uploadFile(gitobj, file, detinationfile)
+		err = uploadFile(gitobj, file, detinationfile)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 	if directory != "" {
 		files, err := ioReadDir(directory)
@@ -83,7 +86,10 @@ func main() {
 		}
 		for _, file := range files {
 			detinationfile := strings.Replace(file, directory, detinationdirectory, 1)
-			uploadFile(gitobj, file, detinationfile)
+			err = uploadFile(gitobj, file, detinationfile)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 
