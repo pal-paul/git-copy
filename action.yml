@@ -1,0 +1,26 @@
+name: 'slack-send'
+inputs:
+  owner:
+    description: 'github owner name of the destination repo'
+    required: true
+  repo: 
+    description: 'github repo name of the destination repo'
+    required: true
+  token: 
+    description: 'github token'
+    required: true
+  file-path: 
+    description: 'path to the file in source repo'
+    required: false
+  detination-file-path:
+    description: 'path to the file to be copyed to destination repo'
+    required: false
+  directory: 
+    description: 'path to the directory in source repo'
+    required: false
+  detination-directory: 
+    description: 'path to the directory to be copyed to destination repo'
+    required: false
+runs:
+  using: docker
+  image: Dockerfile
