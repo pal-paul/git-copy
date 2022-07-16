@@ -152,11 +152,10 @@ func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
 	if err != nil {
 		return err
 	}
-	fileObj, err := gitobj.GetAFile(branch, detinationfile)
+	fileObj, err := gitobj.GetAFile(refbranch, detinationfile)
 	if err != nil {
 		return err
 	}
-
 	if fileObj == nil {
 		_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file created", detinationfile), "")
 		if err != nil {

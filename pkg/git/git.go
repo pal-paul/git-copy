@@ -62,9 +62,10 @@ func (g *Git) CreateBranch(branch string, sha string) (*BranchInfo, error) {
 }
 
 func (g *Git) GetAFile(branch string, filePath string) (*FileInfo, error) {
+	var fileInfo FileInfo
 	qs := url.Values{}
 	qs.Add("ref", branch)
-	resp, err := g.get("repos", fmt.Sprintf("%s/%s/git/contents/%s", g.owner, g.repo, filePath), nil)
+	resp, err := g.get("repos", fmt.Sprintf("%s/%s/contents/%s", g.owner, g.repo, filePath), qs)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,15 @@ func (g *Git) GetAFile(branch string, filePath string) (*FileInfo, error) {
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to get file %s: %s", filePath, resp.Status)
 	}
-	return nil, nil
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(body, &fileInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &fileInfo, nil
 }
 
 func (g *Git) CreateUpdateAFile(branch string, filePath string, content []byte, message string, sha string) (*FileResponse, error) {
@@ -95,7 +104,7 @@ func (g *Git) CreateUpdateAFile(branch string, filePath string, content []byte, 
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 201 {
+	if resp.StatusCode > 201 {
 		return nil, fmt.Errorf("failed to update file %s: %s", filePath, resp.Status)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
@@ -106,7 +115,7 @@ func (g *Git) CreateUpdateAFile(branch string, filePath string, content []byte, 
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return &fileResponse, nil
 }
 
 func (g *Git) CreatePullRequest(baseBranch string, branch string, title string, description string) error {

@@ -31,6 +31,7 @@ func (g *Git) get(basePath string, path string, qs url.Values) (*http.Response, 
 	client := &http.Client{}
 	uStr = u.String()
 
+	//fmt.Println(uStr)
 	req, err := http.NewRequest(http.MethodGet, uStr, nil)
 	if err != nil {
 		return nil, err
@@ -93,6 +94,7 @@ func (g *Git) put(basePath string, path string, qs url.Values, reqBody []byte) (
 	}
 	client := &http.Client{}
 	uStr = u.String()
+	//fmt.Println(uStr)
 	req, err := http.NewRequest(http.MethodPut, uStr, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
