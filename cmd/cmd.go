@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pal-paul/git-copy/pkg/git"
-	"github.com/sethvargo/go-githubactions"
 )
 
 var (
@@ -28,31 +27,24 @@ func main() {
 		detinationdirectory string
 	)
 	refbranch = "master"
-	owner = githubactions.GetInput("owner")
-	githubactions.AddMask(owner)
-	repo = githubactions.GetInput("repo")
-	githubactions.AddMask(repo)
-	token = githubactions.GetInput("token")
-	githubactions.AddMask(token)
+	owner = os.Getenv("INPUT_OWNER")
+	repo = os.Getenv("INPUT_REPO")
+	token = os.Getenv("INPUT_TOKEN")
 
-	file = githubactions.GetInput("file-path")
-	githubactions.AddMask(file)
-	detinationfile = githubactions.GetInput("detinationfile")
-	githubactions.AddMask(detinationfile)
+	file = os.Getenv("INPUT_FILE_PATH")
+	detinationfile = os.Getenv("INPUT_DETINATION_FILE_PATH")
 
-	directory = githubactions.GetInput("directory")
-	githubactions.AddMask(directory)
-	detinationdirectory = githubactions.GetInput("detination-directory")
-	githubactions.AddMask(detinationdirectory)
+	directory = os.Getenv("INPUT_DIRECTORY")
+	detinationdirectory = os.Getenv("INPUT_DETINATION_DIRECTORY")
 
 	if owner == "" {
-		githubactions.Fatalf("missing input 'owner'")
+		fmt.Println("missing input 'owner'")
 	}
 	if repo == "" {
-		githubactions.Fatalf("missing input 'repo'")
+		fmt.Println("missing input 'repo'")
 	}
 	if token == "" {
-		githubactions.Fatalf("missing input 'token'")
+		fmt.Println("missing input 'token'")
 	}
 
 	if file == "" {
