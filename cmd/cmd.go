@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
-
 	"github.com/google/uuid"
 	"github.com/pal-paul/git-copy/pkg/git"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
 )
 
 var (
@@ -38,27 +38,30 @@ func main() {
 	detinationdirectory = os.Getenv("INPUT_DETINATION_DIRECTORY")
 
 	if owner == "" {
-		fmt.Println("missing input 'owner'")
+		log.Fatal("owner is required")
+		return
 	}
 	if repo == "" {
-		fmt.Println("missing input 'repo'")
+		log.Fatal("missing input 'repo'")
+		return
 	}
 	if token == "" {
-		fmt.Println("missing input 'token'")
+		log.Fatal("missing input 'token'")
+		return
 	}
 
 	if file != "" && detinationfile == "" {
-		fmt.Println("missing input 'detinationfile file'")
+		log.Fatal("missing input 'detinationfile file'")
 		return
 	}
 
 	if directory != "" && detinationdirectory == "" {
-		fmt.Println("missing input 'detination-directory'")
+		log.Fatal("missing input 'detination-directory'")
 		return
 	}
 
 	if file == "" && directory == "" {
-		fmt.Println("file or directory is required")
+		log.Fatal("file or directory is required")
 		return
 	}
 
@@ -69,40 +72,40 @@ func main() {
 	if file != "" || directory != "" {
 		refBranch, err := gitobj.GetBranch(refbranch)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 		_, err = gitobj.CreateBranch(branch, refBranch.Object.Sha)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 	}
 
 	if file != "" {
 		err := uploadFile(gitobj, file, detinationfile)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 	}
 	if directory != "" {
 		files, err := ioReadDir(directory)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 		for _, file := range files {
 			detinationfile := strings.Replace(file, directory, detinationdirectory, 1)
 			err = uploadFile(gitobj, file, detinationfile)
 			if err != nil {
-				fmt.Println(err)
+				log.Fatal(err)
 			}
 		}
 	}
 	if file != "" || directory != "" {
 		err := gitobj.CreatePullRequest(refbranch, branch, "updates", "just a test")
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 	} else {
-		fmt.Println("nothing to do")
+		log.Fatal("nothing to do")
 	}
 
 }
