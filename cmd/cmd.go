@@ -84,11 +84,11 @@ func main() {
 
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
-	refBranch, err := gitobj.GetBranch(refbranch)
-	if err != nil {
-		log.Fatal(err)
-	}
 	if file != "" || directory != "" {
+		refBranch, err := gitobj.GetBranch(refbranch)
+		if err != nil {
+			log.Fatal(err)
+		}
 		_, err = gitobj.CreateBranch(branch, refBranch.Object.Sha)
 		if err != nil {
 			log.Fatal(err)
@@ -96,7 +96,7 @@ func main() {
 	}
 
 	if file != "" {
-		err := uploadFile(gitobj, file, detinationfile, refBranch)
+		err := uploadFile(gitobj, file, detinationfile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -108,7 +108,7 @@ func main() {
 		}
 		for _, file := range files {
 			detinationfile := strings.Replace(file, directory, detinationdirectory, 1)
-			err = uploadFile(gitobj, file, detinationfile, refBranch)
+			err = uploadFile(gitobj, file, detinationfile)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -146,13 +146,13 @@ func ioReadDir(root string) ([]string, error) {
 	return files, nil
 }
 
-func uploadFile(gitobj *git.Git, file string, detinationfile string, refBranch *git.BranchInfo) error {
+func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
 	fmt.Println("updating file:", file)
 	filecontent, err := readfile(file)
 	if err != nil {
 		return err
 	}
-	fileObj, err := gitobj.GetAFile(refbranch, detinationfile)
+	fileObj, err := gitobj.GetAFile(branch, detinationfile)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func uploadFile(gitobj *git.Git, file string, detinationfile string, refBranch *
 			return err
 		}
 	} else {
-		_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file updated", detinationfile), refBranch.Object.Sha)
+		_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file updated", detinationfile), fileObj.Sha)
 		if err != nil {
 			return err
 		}
