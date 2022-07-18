@@ -147,7 +147,6 @@ func ioReadDir(root string) ([]string, error) {
 }
 
 func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
-	fmt.Println("updating file:", file)
 	filecontent, err := readfile(file)
 	if err != nil {
 		return err
@@ -157,14 +156,20 @@ func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
 		return err
 	}
 	if fileObj == nil {
+		fmt.Println("creating file:", file)
 		_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file created", detinationfile), "")
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file updated", detinationfile), fileObj.Sha)
-		if err != nil {
-			return err
+		if string(filecontent) != string(fileObj.Content) {
+			fmt.Println("updating file:", file)
+			_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file updated", detinationfile), fileObj.Sha)
+			if err != nil {
+				return err
+			}
+		} else {
+			fmt.Println("no changes file:", file)
 		}
 	}
 	return nil
