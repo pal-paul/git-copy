@@ -24,7 +24,11 @@ func New(owner string, repo string, token string) *Git {
 
 func (g *Git) GetBranch(branch string) (*BranchInfo, error) {
 	var branchInfo BranchInfo
-	resp, err := g.get("repos", fmt.Sprintf("%s/%s/git/refs/heads/%s", g.owner, g.repo, branch), nil)
+	resp, err := g.get(
+		"repos",
+		fmt.Sprintf("%s/%s/git/refs/heads/%s", g.owner, g.repo, branch),
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +89,13 @@ func (g *Git) GetAFile(branch string, filePath string) (*FileInfo, error) {
 	return &fileInfo, nil
 }
 
-func (g *Git) CreateUpdateAFile(branch string, filePath string, content []byte, message string, sha string) (*FileResponse, error) {
+func (g *Git) CreateUpdateAFile(
+	branch string,
+	filePath string,
+	content []byte,
+	message string,
+	sha string,
+) (*FileResponse, error) {
 	var fileResponse FileResponse
 	b64content := b64.StdEncoding.EncodeToString(content)
 	reqBody := map[string]string{
@@ -100,7 +110,12 @@ func (g *Git) CreateUpdateAFile(branch string, filePath string, content []byte, 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := g.put("repos", fmt.Sprintf("%s/%s/contents/%s", g.owner, g.repo, filePath), nil, reqBodyJson)
+	resp, err := g.put(
+		"repos",
+		fmt.Sprintf("%s/%s/contents/%s", g.owner, g.repo, filePath),
+		nil,
+		reqBodyJson,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +133,13 @@ func (g *Git) CreateUpdateAFile(branch string, filePath string, content []byte, 
 	return &fileResponse, nil
 }
 
-func (g *Git) CreatePullRequest(baseBranch string, branch string, title string, description string) error {
+// CreatePullRequest creates a pull request and returns the pull request number.
+func (g *Git) CreatePullRequest(
+	baseBranch string,
+	branch string,
+	title string,
+	description string,
+) (int, error) {
 	reqBody := map[string]any{
 		"title":                 title,
 		"body":                  description,
@@ -128,14 +149,50 @@ func (g *Git) CreatePullRequest(baseBranch string, branch string, title string, 
 	}
 	reqBodyJson, err := json.Marshal(reqBody)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	resp, err := g.post("repos", fmt.Sprintf("%s/%s/pulls", g.owner, g.repo), nil, reqBodyJson)
+	if err != nil {
+		return 0, err
+	}
+	if resp.StatusCode != 201 {
+		return 0, fmt.Errorf("failed to create pull request: %s", resp.Status)
+	}
+	var pullResponse PullResponse
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+	err = json.Unmarshal(body, &pullResponse)
+	if err != nil {
+		return 0, err
+	}
+	return pullResponse.Number, nil
+}
+
+func (g *Git) AddReviewers(number int, prReviewers Reviewers) error {
+	reqBody := make(map[string][]string)
+	if len(prReviewers.Users) > 0 {
+		reqBody["reviewers"] = prReviewers.Users
+	}
+	if len(prReviewers.Teams) > 0 {
+		reqBody["team_reviewers"] = prReviewers.Teams
+	}
+	reqBodyJson, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+	resp, err := g.post(
+		"repos",
+		fmt.Sprintf("%s/%s/pulls/%d/requested_reviewers", g.owner, g.repo, number),
+		nil,
+		reqBodyJson,
+	)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 201 {
-		return fmt.Errorf("failed to create pull request: %s", resp.Status)
+		return fmt.Errorf("failed to add reviewers: %s", resp.Status)
 	}
 	return nil
 }

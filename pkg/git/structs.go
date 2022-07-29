@@ -2,6 +2,11 @@ package git
 
 import "time"
 
+type Reviewers struct {
+	Users []string
+	Teams []string
+}
+
 type BranchInfo struct {
 	Ref    string `json:"ref"`
 	NodeId string `json:"node_id"`
@@ -77,4 +82,8 @@ type FileResponse struct {
 			Payload   interface{} `json:"payload"`
 		} `json:"verification"`
 	} `json:"commit"`
+}
+
+type PullResponse struct {
+	Number int `json:"number"`
 }

@@ -17,32 +17,34 @@ var (
 	repo  string
 	token string
 
-	refbranch string
+	refBranch string
 	branch    string
 )
 
 func main() {
 	var (
 		file                string
-		detinationfile      string
+		detinationFile      string
 		directory           string
-		detinationdirectory string
-		pullmessage         string
-		pulldescption       string
+		detinationDirectory string
+		pullMessage         string
+		pullDescription     string
+		reviewers           string
+		teamReviewers       string
 	)
-	refbranch = "master"
+	refBranch = "master"
 	owner = os.Getenv("INPUT_OWNER")
 	repo = os.Getenv("INPUT_REPO")
 	token = os.Getenv("INPUT_TOKEN")
 
 	file = os.Getenv("INPUT_FILE_PATH")
-	detinationfile = os.Getenv("INPUT_DETINATION_FILE_PATH")
+	detinationFile = os.Getenv("INPUT_DETINATION_FILE_PATH")
 
 	directory = os.Getenv("INPUT_DIRECTORY")
-	detinationdirectory = os.Getenv("INPUT_DETINATION_DIRECTORY")
+	detinationDirectory = os.Getenv("INPUT_DETINATION_DIRECTORY")
 
-	pullmessage = os.Getenv("INPUT_PULL_MESSAGE")
-	pulldescption = os.Getenv("INPUT_PULL_DESCRIPTION")
+	pullMessage = os.Getenv("INPUT_PULL_MESSAGE")
+	pullDescription = os.Getenv("INPUT_PULL_DESCRIPTION")
 
 	if owner == "" {
 		log.Fatal("owner is required")
@@ -57,12 +59,12 @@ func main() {
 		return
 	}
 
-	if file != "" && detinationfile == "" {
+	if file != "" && detinationFile == "" {
 		log.Fatal("missing input 'detinationfile file'")
 		return
 	}
 
-	if directory != "" && detinationdirectory == "" {
+	if directory != "" && detinationDirectory == "" {
 		log.Fatal("missing input 'detination-directory'")
 		return
 	}
@@ -72,12 +74,22 @@ func main() {
 		return
 	}
 
-	if pullmessage == "" {
-		pullmessage = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
+	if pullMessage == "" {
+		pullMessage = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
 	}
 
-	if pulldescption == "" {
-		pulldescption = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
+	if pullDescription == "" {
+		pullDescription = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
+	}
+
+	var gitReviewers git.Reviewers
+	if reviewers != "" {
+		reviewers = strings.ReplaceAll(reviewers, " ", "")
+		gitReviewers.Users = append(gitReviewers.Users, strings.Split(reviewers, ",")...)
+	}
+	if teamReviewers != "" {
+		teamReviewers = strings.ReplaceAll(teamReviewers, " ", "")
+		gitReviewers.Teams = append(gitReviewers.Teams, strings.Split(teamReviewers, ",")...)
 	}
 
 	branch = uuid.New().String()
@@ -85,7 +97,7 @@ func main() {
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
 	if file != "" || directory != "" {
-		refBranch, err := gitobj.GetBranch(refbranch)
+		refBranch, err := gitobj.GetBranch(refBranch)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -96,7 +108,7 @@ func main() {
 	}
 
 	if file != "" {
-		err := uploadFile(gitobj, file, detinationfile)
+		err := uploadFile(gitobj, file, detinationFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -107,7 +119,7 @@ func main() {
 			log.Fatal(err)
 		}
 		for _, file := range files {
-			detinationfile := strings.Replace(file, directory, detinationdirectory, 1)
+			detinationfile := strings.Replace(file, directory, detinationDirectory, 1)
 			err = uploadFile(gitobj, file, detinationfile)
 			if err != nil {
 				log.Fatal(err)
@@ -115,9 +127,15 @@ func main() {
 		}
 	}
 	if file != "" || directory != "" {
-		err := gitobj.CreatePullRequest(refbranch, branch, pullmessage, pulldescption)
+		prNumber, err := gitobj.CreatePullRequest(refBranch, branch, pullMessage, pullDescription)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if gitReviewers.Users != nil || gitReviewers.Teams != nil {
+			err = gitobj.AddReviewers(prNumber, gitReviewers)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	} else {
 		log.Fatal("nothing to do")
@@ -151,13 +169,19 @@ func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
 	if err != nil {
 		return err
 	}
-	fileObj, err := gitobj.GetAFile(refbranch, detinationfile)
+	fileObj, err := gitobj.GetAFile(refBranch, detinationfile)
 	if err != nil {
 		return err
 	}
 	if fileObj == nil {
 		fmt.Println("creating file:", file)
-		_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file created", detinationfile), "")
+		_, err = gitobj.CreateUpdateAFile(
+			branch,
+			detinationfile,
+			filecontent,
+			fmt.Sprintf("%s file created", detinationfile),
+			"",
+		)
 		if err != nil {
 			return err
 		}

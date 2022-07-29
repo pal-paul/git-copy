@@ -1,31 +1,38 @@
-name: 'slack-send'
+name: "git-copy"
+description: "Copy a file from a git repository to another git repository"
 inputs:
   owner:
-    description: 'github owner name of the destination repo'
+    description: "github owner name of the destination repo"
     required: true
-  repo: 
-    description: 'github repo name of the destination repo'
+  repo:
+    description: "github repo name of the destination repo"
     required: true
-  token: 
-    description: 'github token'
+  token:
+    description: "github token"
     required: true
-  file_path: 
-    description: 'path to the file in source repo'
+  file_path:
+    description: "path to the file in source repo"
     required: false
   detination_file_path:
-    description: 'path to the file to be copyed to destination repo'
+    description: "path to the file to be copyed to destination repo"
     required: false
-  directory: 
-    description: 'path to the directory in source repo'
+  directory:
+    description: "path to the directory in source repo"
     required: false
-  detination_directory: 
-    description: 'path to the directory to be copyed to destination repo'
+  detination_directory:
+    description: "path to the directory to be copyed to destination repo"
     required: false
   pull_message:
-    description: 'pull request message'
+    description: "pull request message"
     required: false
   pull_description:
-    description: 'pull request description'
+    description: "pull request description"
+    required: false
+  reviewers:
+    description: "list of reviewers (seperated by comma)"
+    required: false
+  team_reviewers:
+    description: "list of team reviewers (seperated by comma)"
     required: false
 runs:
   using: docker
