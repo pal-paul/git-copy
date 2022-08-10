@@ -43,6 +43,7 @@ func (g *Git) GetBranch(branch string) (*BranchInfo, error) {
 	}
 	err = json.Unmarshal(body, &branchInfo)
 	if err != nil {
+		fmt.Println(string(body))
 		return nil, err
 	}
 	return &branchInfo, nil
