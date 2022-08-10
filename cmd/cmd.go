@@ -141,14 +141,16 @@ func main() {
 		}
 	}
 	if file != "" || directory != "" {
-		prNumber, err := gitobj.CreatePullRequest(refPullBranch, branch, pullMessage, pullDescription)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if gitReviewers.Users != nil || gitReviewers.Teams != nil {
-			err = gitobj.AddReviewers(prNumber, gitReviewers)
+		if refBranch == refPullBranch {
+			prNumber, err := gitobj.CreatePullRequest(refPullBranch, branch, pullMessage, pullDescription)
 			if err != nil {
 				log.Fatal(err)
+			}
+			if gitReviewers.Users != nil || gitReviewers.Teams != nil {
+				err = gitobj.AddReviewers(prNumber, gitReviewers)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 	} else {
