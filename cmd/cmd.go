@@ -28,10 +28,12 @@ func main() {
 		pullDescription     string
 		reviewers           string
 		teamReviewers       string
+		refPullBranch       string
 		refBranch           string
 		branch              string
 	)
-	refBranch = "master"
+	refPullBranch = "master"
+
 	owner = os.Getenv("INPUT_OWNER")
 	repo = os.Getenv("INPUT_REPO")
 	token = os.Getenv("INPUT_TOKEN")
@@ -113,6 +115,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			refBranch = refPullBranch
 		} else {
 			refBranch = branch
 		}
@@ -138,7 +141,7 @@ func main() {
 		}
 	}
 	if file != "" || directory != "" {
-		prNumber, err := gitobj.CreatePullRequest(refBranch, branch, pullMessage, pullDescription)
+		prNumber, err := gitobj.CreatePullRequest(refPullBranch, branch, pullMessage, pullDescription)
 		if err != nil {
 			log.Fatal(err)
 		}
