@@ -102,6 +102,7 @@ func main() {
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
 	if file != "" || directory != "" {
+		refBranch = refPullBranch
 		refDefaultBranch, err := gitobj.GetBranch(refBranch)
 		if err != nil {
 			log.Fatal(err)
@@ -115,7 +116,6 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			refBranch = refPullBranch
 		} else {
 			refBranch = branch
 		}
