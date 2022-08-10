@@ -46,6 +46,9 @@ func main() {
 	pullMessage = os.Getenv("INPUT_PULL_MESSAGE")
 	pullDescription = os.Getenv("INPUT_PULL_DESCRIPTION")
 
+	reviewers = os.Getenv("INPUT_REVIEWERS")
+	teamReviewers = os.Getenv("INPUT_TEAM_REVIEWERS")
+
 	if owner == "" {
 		log.Fatal("owner is required")
 		return
