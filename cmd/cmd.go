@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	_ "github.com/google/uuid"
 	"github.com/pal-paul/git-copy/pkg/git"
 )
 
@@ -95,7 +95,8 @@ func main() {
 		gitReviewers.Teams = append(gitReviewers.Teams, strings.Split(teamReviewers, ",")...)
 	}
 
-	branch = uuid.New().String()
+	// branch = uuid.New().String()
+	branch = "testing"
 
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
