@@ -191,6 +191,10 @@ func (g *Git) AddReviewers(number int, prReviewers Reviewers) error {
 	if err != nil {
 		return err
 	}
+	if resp.StatusCode == 422 {
+		fmt.Println("reviewer are not collaborator")
+		return nil
+	}
 	if resp.StatusCode != 201 {
 		return fmt.Errorf("failed to add reviewers: %s", resp.Status)
 	}
