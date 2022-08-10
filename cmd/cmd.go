@@ -105,9 +105,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = gitobj.CreateBranch(branch, refBranch.Object.Sha)
+		copyBranch, err := gitobj.GetBranch(branch)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if copyBranch == nil {
+			_, err = gitobj.CreateBranch(branch, refBranch.Object.Sha)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
