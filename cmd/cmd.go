@@ -16,9 +16,6 @@ var (
 	owner string
 	repo  string
 	token string
-
-	refBranch string
-	branch    string
 )
 
 func main() {
@@ -31,6 +28,8 @@ func main() {
 		pullDescription     string
 		reviewers           string
 		teamReviewers       string
+		refBranch           string
+		branch              string
 	)
 	refBranch = "master"
 	owner = os.Getenv("INPUT_OWNER")
@@ -101,24 +100,26 @@ func main() {
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
 	if file != "" || directory != "" {
-		refBranch, err := gitobj.GetBranch(refBranch)
+		refDefaultBranch, err := gitobj.GetBranch(refBranch)
 		if err != nil {
 			log.Fatal(err)
 		}
-		copyBranch, err := gitobj.GetBranch(branch)
+		copyToBranch, err := gitobj.GetBranch(branch)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if copyBranch == nil {
-			_, err = gitobj.CreateBranch(branch, refBranch.Object.Sha)
+		if copyToBranch == nil {
+			_, err = gitobj.CreateBranch(branch, refDefaultBranch.Object.Sha)
 			if err != nil {
 				log.Fatal(err)
 			}
+		} else {
+			refBranch = branch
 		}
 	}
 
 	if file != "" {
-		err := uploadFile(gitobj, file, detinationFile)
+		err := uploadFile(refBranch, branch, gitobj, file, detinationFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -130,7 +131,7 @@ func main() {
 		}
 		for _, file := range files {
 			detinationfile := strings.Replace(file, directory, detinationDirectory, 1)
-			err = uploadFile(gitobj, file, detinationfile)
+			err = uploadFile(refBranch, branch, gitobj, file, detinationfile)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -174,7 +175,7 @@ func ioReadDir(root string) ([]string, error) {
 	return files, nil
 }
 
-func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
+func uploadFile(refBranch string, branch string, gitobj *git.Git, file string, detinationfile string) error {
 	filecontent, err := readfile(file)
 	if err != nil {
 		return err
