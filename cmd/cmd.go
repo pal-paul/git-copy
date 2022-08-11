@@ -16,9 +16,6 @@ var (
 	owner string
 	repo  string
 	token string
-
-	refBranch string
-	branch    string
 )
 
 func main() {
@@ -31,8 +28,16 @@ func main() {
 		pullDescription     string
 		reviewers           string
 		teamReviewers       string
+		refPullBranch       string
+		refBranch           string
+		branch              string
 	)
-	refBranch = "master"
+
+	refPullBranch = os.Getenv("INPUT_REF_BRANCH")
+	if refPullBranch == "" {
+		refPullBranch = "master"
+	}
+
 	owner = os.Getenv("INPUT_OWNER")
 	repo = os.Getenv("INPUT_REPO")
 	token = os.Getenv("INPUT_TOKEN")
@@ -95,23 +100,35 @@ func main() {
 		gitReviewers.Teams = append(gitReviewers.Teams, strings.Split(teamReviewers, ",")...)
 	}
 
-	branch = uuid.New().String()
+	branch = os.Getenv("INPUT_BRANCH")
+	if branch == "" {
+		branch = uuid.New().String()
+	}
 
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
 	if file != "" || directory != "" {
-		refBranch, err := gitobj.GetBranch(refBranch)
+		refBranch = refPullBranch
+		refDefaultBranch, err := gitobj.GetBranch(refBranch)
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, err = gitobj.CreateBranch(branch, refBranch.Object.Sha)
+		copyToBranch, err := gitobj.GetBranch(branch)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if copyToBranch == nil {
+			_, err = gitobj.CreateBranch(branch, refDefaultBranch.Object.Sha)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			refBranch = branch
 		}
 	}
 
 	if file != "" {
-		err := uploadFile(gitobj, file, detinationFile)
+		err := uploadFile(refBranch, branch, gitobj, file, detinationFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -123,21 +140,23 @@ func main() {
 		}
 		for _, file := range files {
 			detinationfile := strings.Replace(file, directory, detinationDirectory, 1)
-			err = uploadFile(gitobj, file, detinationfile)
+			err = uploadFile(refBranch, branch, gitobj, file, detinationfile)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 	}
 	if file != "" || directory != "" {
-		prNumber, err := gitobj.CreatePullRequest(refBranch, branch, pullMessage, pullDescription)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if gitReviewers.Users != nil || gitReviewers.Teams != nil {
-			err = gitobj.AddReviewers(prNumber, gitReviewers)
+		if refBranch == refPullBranch {
+			prNumber, err := gitobj.CreatePullRequest(refPullBranch, branch, pullMessage, pullDescription)
 			if err != nil {
 				log.Fatal(err)
+			}
+			if gitReviewers.Users != nil || gitReviewers.Teams != nil {
+				err = gitobj.AddReviewers(prNumber, gitReviewers)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 	} else {
@@ -167,7 +186,7 @@ func ioReadDir(root string) ([]string, error) {
 	return files, nil
 }
 
-func uploadFile(gitobj *git.Git, file string, detinationfile string) error {
+func uploadFile(refBranch string, branch string, gitobj *git.Git, file string, detinationfile string) error {
 	filecontent, err := readfile(file)
 	if err != nil {
 		return err

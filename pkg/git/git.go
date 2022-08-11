@@ -32,7 +32,9 @@ func (g *Git) GetBranch(branch string) (*BranchInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode == 404 {
+		return nil, nil
+	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to get branch %s: %s", branch, resp.Status)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
@@ -41,6 +43,7 @@ func (g *Git) GetBranch(branch string) (*BranchInfo, error) {
 	}
 	err = json.Unmarshal(body, &branchInfo)
 	if err != nil {
+		fmt.Println(string(body))
 		return nil, err
 	}
 	return &branchInfo, nil

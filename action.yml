@@ -7,6 +7,12 @@ inputs:
   repo:
     description: "github repo name of the destination repo"
     required: true
+  ref_branch:
+    description: "github ref branch or base branch of the destination repo (default master)"
+    required: false
+  branch:
+    description: "github branch name to push the copyed files (default auto generated)"
+    required: false
   token:
     description: "github token"
     required: true
