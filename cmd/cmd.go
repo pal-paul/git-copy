@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/pal-paul/git-copy/pkg/git"
 )
 
@@ -32,7 +32,11 @@ func main() {
 		refBranch           string
 		branch              string
 	)
-	refPullBranch = "master"
+
+	refPullBranch = os.Getenv("INPUT_REF_BRANCH")
+	if refPullBranch == "" {
+		refPullBranch = "master"
+	}
 
 	owner = os.Getenv("INPUT_OWNER")
 	repo = os.Getenv("INPUT_REPO")
@@ -96,8 +100,10 @@ func main() {
 		gitReviewers.Teams = append(gitReviewers.Teams, strings.Split(teamReviewers, ",")...)
 	}
 
-	// branch = uuid.New().String()
-	branch = "testing"
+	branch = os.Getenv("INPUT_BRANCH")
+	if branch == "" {
+		branch = uuid.New().String()
+	}
 
 	// DO NOT EDIT BELOW THIS LINE
 	gitobj := git.New(owner, repo, token)
