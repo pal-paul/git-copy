@@ -1,6 +1,7 @@
 package main
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -148,7 +149,12 @@ func main() {
 	}
 	if file != "" || directory != "" {
 		if refBranch == refPullBranch {
-			prNumber, err := gitobj.CreatePullRequest(refPullBranch, branch, pullMessage, pullDescription)
+			prNumber, err := gitobj.CreatePullRequest(
+				refPullBranch,
+				branch,
+				pullMessage,
+				pullDescription,
+			)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -186,7 +192,13 @@ func ioReadDir(root string) ([]string, error) {
 	return files, nil
 }
 
-func uploadFile(refBranch string, branch string, gitobj *git.Git, file string, detinationfile string) error {
+func uploadFile(
+	refBranch string,
+	branch string,
+	gitobj *git.Git,
+	file string,
+	detinationfile string,
+) error {
 	filecontent, err := readfile(file)
 	if err != nil {
 		return err
@@ -208,7 +220,7 @@ func uploadFile(refBranch string, branch string, gitobj *git.Git, file string, d
 			return err
 		}
 	} else {
-		if string(filecontent) != string(fileObj.Content) {
+		if string(b64.StdEncoding.EncodeToString(filecontent)) != string(fileObj.Content) {
 			fmt.Println("updating file:", file)
 			_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file updated", detinationfile), fileObj.Sha)
 			if err != nil {
