@@ -1,4 +1,4 @@
-FROM golang:1.18 as build
+FROM golang:1.21-bullseye as build
 
 RUN mkdir -p /git-copy/
 COPY . /git-copy/
