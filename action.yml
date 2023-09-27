@@ -11,7 +11,7 @@ inputs:
     description: "github ref branch or base branch of the destination repo (default master)"
     required: false
   branch:
-    description: "github branch name to push the copyed files (default auto generated)"
+    description: "github branch name to push the copied files (default auto generated)"
     required: false
   token:
     description: "github token"
@@ -19,14 +19,14 @@ inputs:
   file_path:
     description: "path to the file in source repo"
     required: false
-  detination_file_path:
-    description: "path to the file to be copyed to destination repo"
+  destination_file_path:
+    description: "path to the file to be copied to destination repo"
     required: false
   directory:
     description: "path to the directory in source repo"
     required: false
-  detination_directory:
-    description: "path to the directory to be copyed to destination repo"
+  destination_directory:
+    description: "path to the directory to be copied to destination repo"
     required: false
   pull_message:
     description: "pull request message"
@@ -35,10 +35,10 @@ inputs:
     description: "pull request description"
     required: false
   reviewers:
-    description: "list of reviewers (seperated by comma)"
+    description: "list of reviewers (separated by comma)"
     required: false
   team_reviewers:
-    description: "list of team reviewers (seperated by comma)"
+    description: "list of team reviewers (separated by comma)"
     required: false
 runs:
   using: docker

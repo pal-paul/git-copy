@@ -3,6 +3,7 @@ package main
 import (
 	b64 "encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -21,17 +22,17 @@ var (
 
 func main() {
 	var (
-		file                string
-		detinationFile      string
-		directory           string
-		detinationDirectory string
-		pullMessage         string
-		pullDescription     string
-		reviewers           string
-		teamReviewers       string
-		refPullBranch       string
-		refBranch           string
-		branch              string
+		file                 string
+		destinationFile      string
+		directory            string
+		destinationDirectory string
+		pullMessage          string
+		pullDescription      string
+		reviewers            string
+		teamReviewers        string
+		refPullBranch        string
+		refBranch            string
+		branch               string
 	)
 
 	refPullBranch = os.Getenv("INPUT_REF_BRANCH")
@@ -44,10 +45,10 @@ func main() {
 	token = os.Getenv("INPUT_TOKEN")
 
 	file = os.Getenv("INPUT_FILE_PATH")
-	detinationFile = os.Getenv("INPUT_DETINATION_FILE_PATH")
+	destinationFile = os.Getenv("INPUT_DESTINATION_FILE_PATH")
 
 	directory = os.Getenv("INPUT_DIRECTORY")
-	detinationDirectory = os.Getenv("INPUT_DETINATION_DIRECTORY")
+	destinationDirectory = os.Getenv("INPUT_DESTINATION_DIRECTORY")
 
 	pullMessage = os.Getenv("INPUT_PULL_MESSAGE")
 	pullDescription = os.Getenv("INPUT_PULL_DESCRIPTION")
@@ -68,13 +69,13 @@ func main() {
 		return
 	}
 
-	if file != "" && detinationFile == "" {
-		log.Fatal("missing input 'detinationfile file'")
+	if file != "" && destinationFile == "" {
+		log.Fatal("missing input 'destinationfile file'")
 		return
 	}
 
-	if directory != "" && detinationDirectory == "" {
-		log.Fatal("missing input 'detination-directory'")
+	if directory != "" && destinationDirectory == "" {
+		log.Fatal("missing input 'destination-directory'")
 		return
 	}
 
@@ -107,19 +108,19 @@ func main() {
 	}
 
 	// DO NOT EDIT BELOW THIS LINE
-	gitobj := git.New(owner, repo, token)
+	gitObj := git.New(owner, repo, token)
 	if file != "" || directory != "" {
 		refBranch = refPullBranch
-		refDefaultBranch, err := gitobj.GetBranch(refBranch)
+		refDefaultBranch, err := gitObj.GetBranch(refBranch)
 		if err != nil {
 			log.Fatal(err)
 		}
-		copyToBranch, err := gitobj.GetBranch(branch)
+		copyToBranch, err := gitObj.GetBranch(branch)
 		if err != nil {
 			log.Fatal(err)
 		}
 		if copyToBranch == nil {
-			_, err = gitobj.CreateBranch(branch, refDefaultBranch.Object.Sha)
+			_, err = gitObj.CreateBranch(branch, refDefaultBranch.Object.Sha)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -129,7 +130,7 @@ func main() {
 	}
 
 	if file != "" {
-		err := uploadFile(refBranch, branch, gitobj, file, detinationFile)
+		err := uploadFile(refBranch, branch, gitObj, file, destinationFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -140,8 +141,8 @@ func main() {
 			log.Fatal(err)
 		}
 		for _, file := range files {
-			detinationfile := strings.Replace(file, directory, detinationDirectory, 1)
-			err = uploadFile(refBranch, branch, gitobj, file, detinationfile)
+			detinationFile := strings.Replace(file, directory, destinationDirectory, 1)
+			err = uploadFile(refBranch, branch, gitObj, file, detinationFile)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -149,7 +150,7 @@ func main() {
 	}
 	if file != "" || directory != "" {
 		if refBranch == refPullBranch {
-			prNumber, err := gitobj.CreatePullRequest(
+			prNumber, err := gitObj.CreatePullRequest(
 				refPullBranch,
 				branch,
 				pullMessage,
@@ -159,7 +160,7 @@ func main() {
 				log.Fatal(err)
 			}
 			if gitReviewers.Users != nil || gitReviewers.Teams != nil {
-				err = gitobj.AddReviewers(prNumber, gitReviewers)
+				err = gitObj.AddReviewers(prNumber, gitReviewers)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -180,11 +181,11 @@ func ioReadDir(root string) ([]string, error) {
 
 	for _, file := range fileInfo {
 		if file.IsDir() {
-			nestedfiles, err := ioReadDir(root + "/" + file.Name())
+			nestedFiles, err := ioReadDir(root + "/" + file.Name())
 			if err != nil {
 				return files, err
 			}
-			files = append(files, nestedfiles...)
+			files = append(files, nestedFiles...)
 		} else {
 			files = append(files, root+"/"+file.Name())
 		}
@@ -195,24 +196,24 @@ func ioReadDir(root string) ([]string, error) {
 func uploadFile(
 	refBranch string,
 	branch string,
-	gitobj *git.Git,
+	gitObj *git.Git,
 	file string,
 	detinationfile string,
 ) error {
-	filecontent, err := readfile(file)
+	fileContent, err := readFile(file)
 	if err != nil {
 		return err
 	}
-	fileObj, err := gitobj.GetAFile(refBranch, detinationfile)
+	fileObj, err := gitObj.GetAFile(refBranch, detinationfile)
 	if err != nil {
 		return err
 	}
 	if fileObj == nil {
 		fmt.Println("creating file:", file)
-		_, err = gitobj.CreateUpdateAFile(
+		_, err = gitObj.CreateUpdateAFile(
 			branch,
 			detinationfile,
-			filecontent,
+			fileContent,
 			fmt.Sprintf("%s file created", detinationfile),
 			"",
 		)
@@ -220,9 +221,9 @@ func uploadFile(
 			return err
 		}
 	} else {
-		if string(b64.StdEncoding.EncodeToString(filecontent)) != string(fileObj.Content) {
+		if string(b64.StdEncoding.EncodeToString(fileContent)) != string(fileObj.Content) {
 			fmt.Println("updating file:", file)
-			_, err = gitobj.CreateUpdateAFile(branch, detinationfile, filecontent, fmt.Sprintf("%s file updated", detinationfile), fileObj.Sha)
+			_, err = gitObj.CreateUpdateAFile(branch, detinationfile, fileContent, fmt.Sprintf("%s file updated", detinationfile), fileObj.Sha)
 			if err != nil {
 				return err
 			}
@@ -233,12 +234,12 @@ func uploadFile(
 	return nil
 }
 
-func readfile(path string) ([]byte, error) {
+func readFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	byteValue, err := ioutil.ReadAll(file)
+	byteValue, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}

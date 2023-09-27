@@ -56,3 +56,6 @@ deploy: install build
 test: ## run tests
 	go test -v ./...
 
+tidy:
+	go get -u ./...
+	go mod tidy

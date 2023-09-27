@@ -4,7 +4,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 )
 
@@ -37,7 +37,7 @@ func (g *Git) GetBranch(branch string) (*BranchInfo, error) {
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to get branch %s: %s", branch, resp.Status)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (g *Git) GetAFile(branch string, filePath string) (*FileInfo, error) {
 	} else if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("failed to get file %s: %s", filePath, resp.Status)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (g *Git) CreateUpdateAFile(
 	if resp.StatusCode > 201 {
 		return nil, fmt.Errorf("failed to update file %s: %s", filePath, resp.Status)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (g *Git) CreatePullRequest(
 		return 0, fmt.Errorf("failed to create pull request: %s", resp.Status)
 	}
 	var pullResponse PullResponse
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return 0, err
 	}
