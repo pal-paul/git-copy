@@ -238,7 +238,7 @@ func (g *Git) CreateUpdateMultipleFiles(batch BatchFileUpdate) error {
 		return err
 	}
 
-	if resp.StatusCode > 201 {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("failed to update files: %s", resp.Status)
 	}
 
