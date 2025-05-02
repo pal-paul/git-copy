@@ -4,7 +4,6 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -140,12 +139,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		for _, file := range files {
-			detinationFile := strings.Replace(file, directory, destinationDirectory, 1)
-			err = uploadFile(refBranch, branch, gitObj, file, detinationFile)
-			if err != nil {
-				log.Fatal(err)
-			}
+		err = uploadFiles(refBranch, branch, gitObj, files, directory, destinationDirectory)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 	if file != "" || directory != "" {
@@ -169,12 +165,11 @@ func main() {
 	} else {
 		log.Fatal("nothing to do")
 	}
-
 }
 
 func ioReadDir(root string) ([]string, error) {
 	var files []string
-	fileInfo, err := ioutil.ReadDir(root)
+	fileInfo, err := os.ReadDir(root)
 	if err != nil {
 		return files, err
 	}
@@ -231,6 +226,54 @@ func uploadFile(
 			fmt.Println("no changes file:", file)
 		}
 	}
+	return nil
+}
+
+func uploadFiles(refBranch string, branch string, gitObj *git.Git, files []string, srcDir string, destDir string) error {
+	batch := git.BatchFileUpdate{
+		Branch:  branch,
+		Message: fmt.Sprintf("Batch update files in %s", destDir),
+		Files:   make([]git.FileOperation, 0),
+	}
+
+	for _, file := range files {
+		destinationFile := strings.Replace(file, srcDir, destDir, 1)
+
+		fileContent, err := readFile(file)
+		if err != nil {
+			return err
+		}
+
+		fileObj, err := gitObj.GetAFile(refBranch, destinationFile)
+		if err != nil {
+			return err
+		}
+
+		encoded := b64.StdEncoding.EncodeToString(fileContent)
+
+		fileOp := git.FileOperation{
+			Path:    destinationFile,
+			Content: encoded,
+		}
+
+		if fileObj != nil {
+			if encoded != string(fileObj.Content) {
+				fileOp.Sha = fileObj.Sha
+				batch.Files = append(batch.Files, fileOp)
+				fmt.Println("updating file:", file)
+			} else {
+				fmt.Println("no changes file:", file)
+			}
+		} else {
+			batch.Files = append(batch.Files, fileOp)
+			fmt.Println("creating file:", file)
+		}
+	}
+
+	if len(batch.Files) > 0 {
+		return gitObj.CreateUpdateMultipleFiles(batch)
+	}
+
 	return nil
 }
 

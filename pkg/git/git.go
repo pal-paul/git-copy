@@ -203,3 +203,44 @@ func (g *Git) AddReviewers(number int, prReviewers Reviewers) error {
 	}
 	return nil
 }
+
+type FileOperation struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+	Sha     string `json:"sha,omitempty"`
+}
+
+type BatchFileUpdate struct {
+	Branch  string          `json:"branch"`
+	Message string          `json:"message"`
+	Files   []FileOperation `json:"files"`
+}
+
+func (g *Git) CreateUpdateMultipleFiles(batch BatchFileUpdate) error {
+	reqBody := map[string]interface{}{
+		"branch":  batch.Branch,
+		"message": batch.Message,
+		"files":   batch.Files,
+	}
+
+	reqBodyJson, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	resp, err := g.put(
+		"repos",
+		fmt.Sprintf("%s/%s/contents", g.owner, g.repo),
+		nil,
+		reqBodyJson,
+	)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode > 201 {
+		return fmt.Errorf("failed to update files: %s", resp.Status)
+	}
+
+	return nil
+}
