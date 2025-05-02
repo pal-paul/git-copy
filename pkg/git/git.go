@@ -203,3 +203,53 @@ func (g *Git) AddReviewers(number int, prReviewers Reviewers) error {
 	}
 	return nil
 }
+
+type FileOperation struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+	Sha     string `json:"sha,omitempty"`
+}
+
+type BatchFileUpdate struct {
+	Branch  string          `json:"branch"`
+	Message string          `json:"message"`
+	Files   []FileOperation `json:"files"`
+}
+
+// CreateUpdateMultipleFiles updates or creates multiple files in a repository branch.
+// 
+// Parameters:
+// - batch: A BatchFileUpdate struct containing the branch name, commit message, 
+//   and a list of files to be created or updated. Each file is represented by a 
+//   FileOperation struct, which includes the file path, content, and optional SHA.
+//
+// Returns:
+// - An error if the operation fails, or nil if the files are successfully updated.
+func (g *Git) CreateUpdateMultipleFiles(batch BatchFileUpdate) error {
+	reqBody := map[string]interface{}{
+		"branch":  batch.Branch,
+		"message": batch.Message,
+		"files":   batch.Files,
+	}
+
+	reqBodyJson, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	resp, err := g.put(
+		"repos",
+		fmt.Sprintf("%s/%s/contents", g.owner, g.repo),
+		nil,
+		reqBodyJson,
+	)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("failed to update files: %s", resp.Status)
+	}
+
+	return nil
+}
