@@ -216,6 +216,15 @@ type BatchFileUpdate struct {
 	Files   []FileOperation `json:"files"`
 }
 
+// CreateUpdateMultipleFiles updates or creates multiple files in a repository branch.
+// 
+// Parameters:
+// - batch: A BatchFileUpdate struct containing the branch name, commit message, 
+//   and a list of files to be created or updated. Each file is represented by a 
+//   FileOperation struct, which includes the file path, content, and optional SHA.
+//
+// Returns:
+// - An error if the operation fails, or nil if the files are successfully updated.
 func (g *Git) CreateUpdateMultipleFiles(batch BatchFileUpdate) error {
 	reqBody := map[string]interface{}{
 		"branch":  batch.Branch,
