@@ -264,13 +264,13 @@ func uploadFiles(refBranch string, branch string, gitObj *git.Git, files []strin
 			if encoded != string(fileObj.Content) {
 				fileOp.Sha = fileObj.Sha
 				batch.Files = append(batch.Files, fileOp)
-				fmt.Println("updating file:", file)
+				log.Printf("INFO: updating file: %s", file)
 			} else {
-				fmt.Println("no changes file:", file)
+				log.Printf("INFO: no changes to file: %s", file)
 			}
 		} else {
 			batch.Files = append(batch.Files, fileOp)
-			fmt.Println("creating file:", file)
+			log.Printf("INFO: creating file: %s", file)
 		}
 	}
 
