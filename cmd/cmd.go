@@ -237,7 +237,11 @@ func uploadFiles(refBranch string, branch string, gitObj *git.Git, files []strin
 	}
 
 	for _, file := range files {
-		destinationFile := strings.Replace(file, srcDir, destDir, 1)
+		relativePath, err := filepath.Rel(srcDir, file)
+		if err != nil {
+			return fmt.Errorf("failed to compute relative path: %w", err)
+		}
+		destinationFile := filepath.Join(destDir, relativePath)
 
 		fileContent, err := readFile(file)
 		if err != nil {
