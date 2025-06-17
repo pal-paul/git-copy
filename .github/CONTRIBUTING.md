@@ -3,7 +3,6 @@
 Thank you for your interest in contributing to git-copy! This document provides guidelines and information for contributors.
 
 ## Table of Contents
-
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
@@ -19,14 +18,12 @@ This project adheres to a code of conduct. By participating, you are expected to
 ## Getting Started
 
 ### Prerequisites
-
 - Go 1.21 or later
 - Git
 - Make
 - GitHub account
 
 ### Development Tools (Optional but Recommended)
-
 - [golangci-lint](https://golangci-lint.run/) for linting
 - [actionlint](https://github.com/rhymond/actionlint) for GitHub Actions validation
 - [govulncheck](https://golang.org/x/vuln/cmd/govulncheck) for security scanning
@@ -34,21 +31,18 @@ This project adheres to a code of conduct. By participating, you are expected to
 ## Development Setup
 
 1. **Fork and clone the repository**
-
    ```bash
    git clone https://github.com/YOUR-USERNAME/git-copy.git
    cd git-copy
    ```
 
 2. **Install dependencies**
-
    ```bash
    go mod download
    make install
    ```
 
 3. **Verify setup**
-
    ```bash
    make test-all
    make build
@@ -57,14 +51,12 @@ This project adheres to a code of conduct. By participating, you are expected to
 ## Making Changes
 
 ### Branch Naming Convention
-
 - `feature/your-feature-name` - for new features
 - `bugfix/issue-description` - for bug fixes
 - `docs/documentation-update` - for documentation changes
 - `chore/mastertenance-task` - for mastertenance tasks
 
 ### Commit Message Guidelines
-
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
 ```
@@ -76,7 +68,6 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ```
 
 Examples:
-
 ```
 feat: add support for custom commit messages
 fix: resolve race condition in file processing
@@ -85,7 +76,6 @@ test: add integration tests for directory operations
 ```
 
 ### Code Style
-
 - Follow Go formatting conventions (`gofmt`)
 - Use meaningful variable and function names
 - Add comments for complex logic
@@ -94,7 +84,6 @@ test: add integration tests for directory operations
 ## Testing
 
 ### Running Tests
-
 ```bash
 # Run all tests
 make test-all
@@ -107,14 +96,12 @@ make test-startup   # Application startup validation
 ```
 
 ### Writing Tests
-
 - Place tests in the `test/` directory
 - Use table-driven tests when appropriate
 - Test both success and error cases
 - Add benchmarks for performance-critical code
 
 ### Test Categories
-
 1. **Unit Tests** (`test/cmd_test.go`) - Test individual functions
 2. **Integration Tests** (`test/integration_test.go`) - Test workflows
 3. **Git Operations Tests** (`test/git_operations_test.go`) - Test Git interactions
@@ -123,7 +110,6 @@ make test-startup   # Application startup validation
 ## Code Quality
 
 ### Before Submitting
-
 Run the following commands to ensure code quality:
 
 ```bash
@@ -144,7 +130,6 @@ make build
 ```
 
 ### Required Checks
-
 - [ ] All tests pass
 - [ ] Code is formatted (`gofmt`)
 - [ ] Linting passes
@@ -157,7 +142,6 @@ make build
 ### Pull Request Process
 
 1. **Create a descriptive PR title**
-
    ```
    feat: add support for recursive directory exclusions
    fix: handle empty files correctly
@@ -180,7 +164,6 @@ make build
    - Update your PR based on review comments
 
 ### Review Criteria
-
 - Code quality and adherence to Go best practices
 - Test coverage for new functionality
 - Documentation updates
@@ -191,16 +174,13 @@ make build
 ## Release Process
 
 ### Versioning
-
 We follow [Semantic Versioning](https://semver.org/):
-
 - `MAJOR.MINOR.PATCH`
 - Major: Breaking changes
 - Minor: New features (backward compatible)
 - Patch: Bug fixes (backward compatible)
 
 ### Release Steps
-
 1. Update version in relevant files
 2. Update CHANGELOG.md
 3. Create release PR
@@ -224,25 +204,21 @@ git-copy/
 ## Getting Help
 
 ### Documentation
-
 - Read the [README.md](README.md) for usage examples
 - Check existing [issues](https://github.com/pal-paul/git-copy/issues)
 - Review [pull requests](https://github.com/pal-paul/git-copy/pulls)
 
 ### Communication
-
 - Create an issue for bugs or feature requests
 - Use discussions for questions and general topics
 - Tag mastertainers for urgent issues
 
 ### mastertainers
-
 - @pal-paul - Project owner and primary mastertainer
 
 ## Recognition
 
 Contributors will be recognized in:
-
 - Release notes
 - Contributors section
 - GitHub contributor graph
