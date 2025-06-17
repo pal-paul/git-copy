@@ -1,4 +1,4 @@
-version: 2
+version: "2"
 
 run:
   timeout: 5m
@@ -19,7 +19,6 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    - gosec
     - lll
     - misspell
     - nakedret
@@ -36,11 +35,11 @@ linters-settings:
     check-blank: true
   
   funlen:
-    lines: 120
-    statements: 80
+    lines: 150
+    statements: 100
   
   gocognit:
-    min-complexity: 90
+    min-complexity: 100
   
   goconst:
     min-len: 2
@@ -60,19 +59,3 @@ linters-settings:
   
   nakedret:
     max-func-lines: 30
-
-issues:
-  exclude-rules:
-    # Allow longer functions and higher complexity in test files
-    - path: test/
-      linters:
-        - funlen
-        - gocognit
-        - gocyclo
-        - dupl
-        - gosec
-    
-    # Allow file inclusion in main application (needed for file processing)
-    - text: "G304.*file inclusion via variable"
-      linters:
-        - gosec

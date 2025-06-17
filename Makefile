@@ -202,9 +202,19 @@ validate-ci: ## validate GitHub Actions workflow files
 fmt: ## format go code
 	go fmt ./...
 
-lint: ## run golangci-lint
+lint: ## run golangci-lint with version compatibility
 	@if command -v golangci-lint >/dev/null 2>&1; then \
-		golangci-lint run; \
+		echo "Detecting golangci-lint version..."; \
+		LINT_VERSION=$$(golangci-lint --version | grep -o 'version [0-9]*\.[0-9]*' | cut -d' ' -f2); \
+		MAJOR_VERSION=$$(echo $$LINT_VERSION | cut -d'.' -f1); \
+		echo "Found golangci-lint version: $$LINT_VERSION"; \
+		if [ "$$MAJOR_VERSION" -ge "2" ] || [ "$$LINT_VERSION" = "1.59" ] || [ "$$LINT_VERSION" = "1.60" ]; then \
+			echo "Using v2 configuration format..."; \
+			golangci-lint run --config .golangci.yml; \
+		else \
+			echo "Version $$LINT_VERSION detected. Using fallback configuration..."; \
+			golangci-lint run --enable=errcheck,govet,ineffassign,staticcheck,unused,gosec,gocritic --timeout=5m; \
+		fi; \
 	else \
 		echo "golangci-lint not found. Install from https://golangci-lint.run/"; \
 		echo "Running basic go vet instead..."; \
