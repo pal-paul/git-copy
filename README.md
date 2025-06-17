@@ -759,6 +759,24 @@ Recent improvements include:
 Available Makefile targets:
 
 - `make test`: Run basic tests
+- `make lint`: Run golangci-lint with automatic version detection
+- `make fmt`: Format Go code
+- `make build`: Build the application
+- `make tidy`: Update and tidy Go modules
+
+### Linting
+
+The project uses golangci-lint for code quality checks. The configuration automatically detects the installed version and uses the appropriate settings:
+
+```bash
+# Run linting (with automatic version detection)
+make lint
+
+# Or run directly
+golangci-lint run --config .golangci.yml
+```
+
+**Note**: The project supports both golangci-lint v1 and v2 formats. The Makefile automatically detects your version and applies the correct configuration.
 - `make test-coverage`: Generate coverage report
 - `make test-race`: Run with race detection
 - `make test-bench`: Run benchmark tests
