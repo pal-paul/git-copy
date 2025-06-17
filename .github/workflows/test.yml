@@ -128,7 +128,7 @@ jobs:
           ./git-copy 2>/dev/null || echo "✓ Directory-based operation validation passed!"
 
       - name: Upload test artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results-go${{ matrix.go-version }}
