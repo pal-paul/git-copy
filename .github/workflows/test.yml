@@ -23,16 +23,15 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+          cache: true
+          cache-dependency-path: go.sum
 
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
+      - name: Clean Go module cache conflicts
+        run: |
+          if [ -d ~/go/pkg/mod ]; then
+            find ~/go/pkg/mod -name "*.mod" -exec chmod +w {} \; 2>/dev/null || true
+            find ~/go/pkg/mod -type d -exec chmod +w {} \; 2>/dev/null || true
+          fi
 
       - name: Download dependencies
         run: go mod download
