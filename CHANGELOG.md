@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/pal-paul/git-copy/compare/v2.1.0...v2.1.1) (2025-06-18)
+
+
+### Bug Fixes
+
+* release issue ([#15](https://github.com/pal-paul/git-copy/issues/15)) ([007a5bf](https://github.com/pal-paul/git-copy/commit/007a5bf2fec1e6c7c61bd3d6d8c4c27293ab2296))
+
 ## [2.1.0](https://github.com/pal-paul/git-copy/compare/v2.0.1...v2.1.0) (2025-06-18)
 
 
