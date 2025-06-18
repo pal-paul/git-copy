@@ -48,6 +48,18 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Check for action binary
+      shell: bash
+      run: |
+        if [ ! -f "${{ github.action_path }}/cmd/app-git-copy" ]; then
+          echo "❌ Action binary not found. This may be a development version."
+          echo "💡 For releases, the binary is automatically built and committed."
+          echo "📍 Binary expected at: ${{ github.action_path }}/cmd/app-git-copy"
+          exit 1
+        fi
+        echo "✅ Action binary found and ready"
+        ls -la "${{ github.action_path }}/cmd/app-git-copy"
+
     - name: Run git-copy action
       shell: bash
       run: |

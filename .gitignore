@@ -4,8 +4,9 @@
 .local
 .DS_Store
 
-# Build artifacts (except action binary for releases)
-# cmd/app-git-copy - Action binary should be committed for releases
+# Build artifacts
+# Action binary is excluded during development but built/committed for releases
+cmd/app-git-copy
 cmd/cmd
 releases/
 *.exe
