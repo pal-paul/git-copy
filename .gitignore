@@ -6,5 +6,8 @@
 
 # Build artifacts
 cmd/app-git-copy
+cmd/cmd
+*.exe
+*.bin
 coverage.out
 coverage.html

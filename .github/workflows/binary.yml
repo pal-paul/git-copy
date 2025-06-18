@@ -1,38 +1,56 @@
-name: Build Binary
+name: Build and Release Binary
 
 on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: "write"
+      contents: write
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v4
         with:
           go-version-file: "go.mod"
 
-      - name: Install dependencies
+      - name: Build binary
         run: |
-          make install
+          go build -o ./cmd/app-git-copy ./cmd
 
-      - name: Build
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o cmd/cmd cmd/cmd.go
-          chmod +x cmd/cmd
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-git-copy-linux-amd64
+          path: cmd/app-git-copy
+          retention-days: 30
 
-      - name: Commit and push binary
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git add cmd/cmd
-          git commit -m "Update binary [skip ci]" || echo "No changes to commit"
-          git push
+      - name: Create Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: cmd/app-git-copy
+          asset_name: app-git-copy-linux-amd64
+          asset_content_type: application/octet-stream
