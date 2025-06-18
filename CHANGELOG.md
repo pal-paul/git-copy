@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/pal-paul/git-copy/compare/v2.2.0...v2.3.0) (2025-06-18)
+
+
+### Features
+
+* pr desc ([#29](https://github.com/pal-paul/git-copy/issues/29)) ([6852bd7](https://github.com/pal-paul/git-copy/commit/6852bd7832330ed534837b0a0a10b16fca2c6fcb))
+
 ## [2.2.0](https://github.com/pal-paul/git-copy/compare/v2.1.3...v2.2.0) (2025-06-18)
 
 
