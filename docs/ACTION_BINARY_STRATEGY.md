@@ -94,7 +94,7 @@ make clean
 
 ```yaml
 # In GitHub Actions workflows
-- uses: pal-paul/git-copy@v4.0.0
+- uses: pal-paul/git-copy@v2.1.4
   with:
     # ... action inputs
 ```

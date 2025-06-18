@@ -32,7 +32,7 @@ A clear and concise description of what you expected to happen.
 ```yaml
 # Your GitHub Action configuration
 - name: Copy files
-  uses: pal-paul/git-copy@v1
+  uses: pal-paul/git-copy@v2.1.4
   with:
     # your configuration here
 

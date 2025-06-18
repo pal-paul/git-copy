@@ -22,7 +22,7 @@ Describe the specific use case for this feature:
 ```yaml
 # Example of how you would like to use this feature
 - name: Example usage
-  uses: pal-paul/git-copy@v1
+  uses: pal-paul/git-copy@v2.1.4
   with:
     # your desired configuration
 ```

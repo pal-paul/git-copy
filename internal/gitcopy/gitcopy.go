@@ -73,8 +73,7 @@ func IoReadDir(root string) ([]string, error) {
 		if file.IsDir() {
 			nestedFiles, err := IoReadDir(filepath.Join(root, file.Name()))
 			if err != nil {
-				// Log error but continue processing other files
-				log.Printf("Error reading directory %s: %v", filepath.Join(root, file.Name()), err)
+				log.Printf("ERROR: reading directory %s: %v", filepath.Join(root, file.Name()), err)
 				continue
 			}
 			files = append(files, nestedFiles...)
@@ -93,7 +92,7 @@ func ReadFile(path string) ([]byte, error) {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Printf("Error closing file: %v", err)
+			log.Printf("ERROR: closing file: %v", err)
 		}
 	}()
 
@@ -109,26 +108,18 @@ func RunApplication() {
 	var refBranch string
 
 	if envVar.Input.FilePath != "" && envVar.Input.DestinationFilePath == "" {
-		log.Fatal("missing input 'destination_file file'")
+		log.Fatal("ERROR: missing input 'destination_file file'")
 		return
 	}
 
 	if envVar.Input.Directory != "" && envVar.Input.DestinationDirectory == "" {
-		log.Fatal("missing input 'destination-directory'")
+		log.Fatal("ERROR: missing input 'destination-directory'")
 		return
 	}
 
 	if envVar.Input.FilePath == "" && envVar.Input.Directory == "" {
-		log.Fatal("file or directory is required")
+		log.Fatal("ERROR: file or directory is required")
 		return
-	}
-
-	if envVar.Input.PullMessage == "" {
-		envVar.Input.PullMessage = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
-	}
-
-	if envVar.Input.PullDescription == "" {
-		envVar.Input.PullDescription = fmt.Sprintf("update %s", time.Now().Format("2006-01-02 15:04:05"))
 	}
 
 	var gitReviewers git.Reviewers
@@ -173,6 +164,7 @@ func RunApplication() {
 		}
 	}
 
+	var messages []string
 	if envVar.Input.FilePath != "" {
 		fileContent, err := ReadFile(envVar.Input.FilePath)
 		if err != nil {
@@ -183,7 +175,6 @@ func RunApplication() {
 			log.Fatal(err)
 		}
 		if fileObj == nil {
-			fmt.Println("creating file:", envVar.Input.FilePath)
 			_, err = gitObj.CreateUpdateAFile(
 				envVar.Input.Branch,
 				envVar.Input.DestinationFilePath,
@@ -194,15 +185,15 @@ func RunApplication() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			messages = append(messages, fmt.Sprintf("file %s created at %s", envVar.Input.DestinationFilePath, time.Now().Format("2006-01-02 15:04:05")))
 		} else {
 			encoded := b64.StdEncoding.EncodeToString(fileContent)
 			if encoded != fileObj.Content {
-				fmt.Println("updating file:", envVar.Input.FilePath)
 				_, err = gitObj.CreateUpdateAFile(
 					envVar.Input.Branch,
 					envVar.Input.DestinationFilePath,
 					fileContent,
-					fmt.Sprintf("%s file updated", envVar.Input.DestinationFilePath),
+					fmt.Sprintf("update file from source %s to destination %s", envVar.Input.FilePath, envVar.Input.DestinationFilePath),
 					fileObj.Sha,
 				)
 				if err != nil {
@@ -211,7 +202,9 @@ func RunApplication() {
 			} else {
 				log.Printf("INFO: No changes detected for %s", envVar.Input.FilePath)
 			}
+			messages = append(messages, fmt.Sprintf("file %s updated to %s", envVar.Input.FilePath, envVar.Input.DestinationFilePath))
 		}
+		messages = append(messages, fmt.Sprintf("file %s updated to %s", envVar.Input.FilePath, envVar.Input.DestinationFilePath))
 	}
 
 	if envVar.Input.Directory != "" {
@@ -221,7 +214,7 @@ func RunApplication() {
 		}
 		batch := git.BatchFileUpdate{
 			Branch:  envVar.Input.Branch,
-			Message: fmt.Sprintf("Batch update files in %s", envVar.Input.DestinationDirectory),
+			Message: fmt.Sprintf("updates files from source %s to destination %s", envVar.Input.Directory, envVar.Input.DestinationDirectory),
 			Files:   make([]git.FileOperation, 0),
 		}
 
@@ -235,18 +228,15 @@ func RunApplication() {
 
 			fileContent, err := ReadFile(file)
 			if err != nil {
-				log.Printf("ERROR: could not read file %s: %v", file, err)
 				continue
 			}
 
 			fileObj, err := gitObj.GetAFile(refBranch, destinationFile)
 			if err != nil {
-				// log.Printf("ERROR: could not get file %s: %v", destinationFile, err)
 				continue
 			}
 
 			encoded := b64.StdEncoding.EncodeToString(fileContent)
-
 			fileOp := git.FileOperation{
 				Path:    destinationFile,
 				Content: encoded,
@@ -262,14 +252,24 @@ func RunApplication() {
 		}
 
 		if len(batch.Files) > 0 {
-			fmt.Printf("Processing batch update for %d files\n", len(batch.Files))
 			err = gitObj.CreateUpdateMultipleFiles(batch)
 			if err != nil {
 				log.Fatal(err)
 			}
+			messages = append(messages, fmt.Sprintf("directory %s updated to %s", envVar.Input.Directory, envVar.Input.DestinationDirectory))
+			messages = append(messages, fmt.Sprintf("updated %d files in %s", len(batch.Files), envVar.Input.DestinationDirectory))
 		} else {
-			log.Printf("INFO: No files need updating in %s", envVar.Input.DestinationDirectory)
+			messages = append(messages, fmt.Sprintf("no files updated in %s", envVar.Input.DestinationDirectory))
 		}
+
+	}
+
+	if envVar.Input.PullMessage == "" {
+		envVar.Input.PullMessage = fmt.Sprintf("copy file(s) at %s", time.Now().Format("2006-01-02 15:04:05"))
+	}
+
+	if envVar.Input.PullDescription == "" {
+		envVar.Input.PullDescription = strings.Join(messages, "\n")
 	}
 
 	if envVar.Input.FilePath != "" || envVar.Input.Directory != "" {
