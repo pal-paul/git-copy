@@ -241,7 +241,7 @@ func RunApplication() {
 
 			fileObj, err := gitObj.GetAFile(refBranch, destinationFile)
 			if err != nil {
-				log.Printf("ERROR: could not get file %s: %v", destinationFile, err)
+				// log.Printf("ERROR: could not get file %s: %v", destinationFile, err)
 				continue
 			}
 
