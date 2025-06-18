@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches: [master]
+    paths:
+      - ".release-please-manifest.json"
+      - "CHANGELOG.md"
 
 jobs:
   prepare-action:
