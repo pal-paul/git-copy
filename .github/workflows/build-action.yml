@@ -1,0 +1,38 @@
+name: Build Action
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-action:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Build action binary
+        run: |
+          go build -o cmd/app-git-copy ./cmd
+          chmod +x cmd/app-git-copy
+
+      - name: Commit action binary
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add cmd/app-git-copy
+          git commit -m "Add action binary for ${{ github.ref_name }} [skip ci]" || echo "No changes to commit"
+          git push
