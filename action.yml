@@ -48,23 +48,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
-        cache: true
-        cache-dependency-path: ${{ github.action_path }}/go.sum
-
-    - name: Build git-copy action
-      shell: bash
-      run: |
-        cd ${{ github.action_path }}
-        go build -o cmd/app-git-copy ./cmd
-        chmod +x cmd/app-git-copy
-
     - name: Run git-copy action
       shell: bash
       run: |
+        chmod +x ${{ github.action_path }}/cmd/app-git-copy
         ${{ github.action_path }}/cmd/app-git-copy
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
