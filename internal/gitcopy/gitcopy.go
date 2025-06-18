@@ -165,6 +165,10 @@ func RunApplication() {
 	}
 
 	var messages []string
+	if envVar.Input.PullDescription != "" {
+		messages = append(messages, envVar.Input.PullDescription)
+	}
+
 	if envVar.Input.FilePath != "" {
 		fileContent, err := ReadFile(envVar.Input.FilePath)
 		if err != nil {
@@ -267,10 +271,7 @@ func RunApplication() {
 	if envVar.Input.PullMessage == "" {
 		envVar.Input.PullMessage = fmt.Sprintf("copy file(s) at %s", time.Now().Format("2006-01-02 15:04:05"))
 	}
-
-	if envVar.Input.PullDescription == "" {
-		envVar.Input.PullDescription = strings.Join(messages, "\n")
-	}
+	envVar.Input.PullDescription = strings.Join(messages, "\n")
 
 	if envVar.Input.FilePath != "" || envVar.Input.Directory != "" {
 		if refBranch != envVar.Input.Branch {
