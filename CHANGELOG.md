@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3](https://github.com/pal-paul/git-copy/compare/v2.1.2...v2.1.3) (2025-06-18)
+
+
+### Bug Fixes
+
+* libs update ([6a784ae](https://github.com/pal-paul/git-copy/commit/6a784ae2e1687021ad037cb7c2a7ee9a007487e9))
+
 ## [2.1.2](https://github.com/pal-paul/git-copy/compare/v2.1.1...v2.1.2) (2025-06-18)
 
 
