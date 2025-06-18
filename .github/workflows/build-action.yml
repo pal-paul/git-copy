@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       force_build:
-        description: 'Force build action binary'
+        description: "Force build action binary"
         required: false
-        default: 'false'
+        default: "false"
 
 jobs:
   build-action:
@@ -46,10 +46,10 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
+
           # Force add the binary (override .gitignore)
           git add -f cmd/app-git-copy
-          
+
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else

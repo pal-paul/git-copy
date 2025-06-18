@@ -5,8 +5,8 @@ on:
     types: [opened, synchronize]
     branches: [master]
     paths:
-      - '.release-please-manifest.json'
-      - 'CHANGELOG.md'
+      - ".release-please-manifest.json"
+      - "CHANGELOG.md"
 
 jobs:
   prepare-action:
@@ -42,7 +42,7 @@ jobs:
           echo "Building production-ready action binary..."
           go build -ldflags="-s -w" -o cmd/app-git-copy ./cmd
           chmod +x cmd/app-git-copy
-          
+
           echo "Binary info:"
           file cmd/app-git-copy
           echo "Size: $(du -h cmd/app-git-copy | cut -f1)"
@@ -51,10 +51,10 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
+
           # Force add binary (override .gitignore)
           git add -f cmd/app-git-copy
-          
+
           if git diff --staged --quiet; then
             echo "Binary already up to date"
           else
