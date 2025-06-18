@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/pal-paul/git-copy/compare/v2.1.3...v2.2.0) (2025-06-18)
+
+
+### Features
+
+* update commit mgs ([#27](https://github.com/pal-paul/git-copy/issues/27)) ([3f812e5](https://github.com/pal-paul/git-copy/commit/3f812e571430aec398a1a119b6322457eb33fda3))
+
 ## [2.1.3](https://github.com/pal-paul/git-copy/compare/v2.1.2...v2.1.3) (2025-06-18)
 
 
