@@ -5,6 +5,7 @@
 .DS_Store
 
 # Build artifacts
+# Action binary is excluded during development but built/committed for releases
 cmd/app-git-copy
 cmd/cmd
 releases/

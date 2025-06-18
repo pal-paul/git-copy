@@ -1,13 +1,19 @@
-name: Build Action
+name: Build and Commit Action Binary
 
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: "Force build action binary"
+        required: false
+        default: "false"
 
 jobs:
   build-action:
+    name: Build Action Binary for Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.BOT_TOKEN }}
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -24,15 +31,43 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
-      - name: Build action binary
+      - name: Run tests to ensure quality
         run: |
-          go build -o cmd/app-git-copy ./cmd
-          chmod +x cmd/app-git-copy
+          go test -v ./test/...
 
-      - name: Commit action binary
+      - name: Build optimized action binary
+        run: |
+          echo "Building optimized action binary for release..."
+          go build -ldflags="-s -w" -o cmd/app-git-copy ./cmd
+          chmod +x cmd/app-git-copy
+          ls -la cmd/app-git-copy
+
+      - name: Commit action binary for release
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add cmd/app-git-copy
-          git commit -m "Add action binary for ${{ github.ref_name }} [skip ci]" || echo "No changes to commit"
-          git push
+
+          # Force add the binary (override .gitignore)
+          git add -f cmd/app-git-copy
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 Add optimized action binary for ${{ github.ref_name }} release
+
+            - Built with Go $(go version | awk '{print $3}')
+            - Optimized with -ldflags='-s -w'
+            - Ready for GitHub Action usage
+            - Auto-generated for release ${{ github.ref_name }}
+            
+            [skip ci]"
+            git push origin ${{ github.ref_name }}
+            echo "✅ Action binary committed and pushed"
+          fi
+
+      - name: Verify binary
+        run: |
+          echo "Binary verification:"
+          file cmd/app-git-copy
+          echo "Binary size: $(du -h cmd/app-git-copy | cut -f1)"
+          echo "✅ Action binary ready for release"

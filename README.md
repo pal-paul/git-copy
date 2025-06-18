@@ -463,8 +463,25 @@ env:
 Required token scopes:
 
 - `repo` (for private repositories)
-- `public_repo` (for public repositories)
+- `public_repo` (for public repositories) 
 - `workflow` (if modifying workflow files)
+
+**For Cross-Organization Actions:**
+When copying to a different organization, ensure the token has access to the target repository:
+
+1. **Personal Access Token**: Create a PAT with repo access to the target organization
+2. **Organization Token**: Use an organization-level token or app token
+3. **Repository Access**: Token owner must have write access to the target repository
+
+**Common Permission Issues:**
+
+```yaml
+# ❌ Using default GITHUB_TOKEN for cross-org copy
+token: "${{ secrets.GITHUB_TOKEN }}"  # Only works within same repository
+
+# ✅ Using organization or personal token 
+token: "${{ secrets.CROSS_ORG_TOKEN }}"  # Has access to target repository
+```
 
 Example token creation:
 
@@ -474,6 +491,68 @@ gh auth token --scopes repo,workflow
 
 # Or create via GitHub Settings > Developer settings > Personal access tokens
 ```
+
+### 401 Unauthorized Error
+
+```
+2025/06/18 11:13:11 failed to get branch master: 401 Unauthorized
+```
+
+This error occurs when the GitHub token doesn't have proper permissions to access the target repository.
+
+**Common Causes & Solutions:**
+
+1. **Cross-Organization Access**:
+   ```yaml
+   # ❌ Default GITHUB_TOKEN doesn't work across organizations
+   token: "${{ secrets.GITHUB_TOKEN }}"
+   
+   # ✅ Use Personal Access Token or Organization Token
+   token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+   ```
+
+2. **Missing Repository Access**:
+   - Ensure the token owner has **write access** to target repository
+   - For organization repos, token may need organization permissions
+   - Check if repository is private and token has appropriate scope
+
+3. **Incorrect Token Scopes**:
+   Required scopes depend on repository type:
+   ```bash
+   # For private repositories
+   repo
+   
+   # For public repositories  
+   public_repo
+   
+   # For organization repositories
+   repo, read:org
+   ```
+
+4. **Repository Name Issues**:
+   - Verify `owner` and `repo` parameters are correct
+   - Check for typos in repository names
+   - Ensure target repository exists
+
+**Debugging Steps:**
+
+```yaml
+# Add debug logging to your workflow
+- name: Debug Repository Access
+  run: |
+    echo "Target: ${{ inputs.owner }}/${{ inputs.repo }}"
+    # Test token access (replace with your values)
+    curl -H "Authorization: token ${{ secrets.YOUR_TOKEN }}" \
+         https://api.github.com/repos/${{ inputs.owner }}/${{ inputs.repo }}
+```
+
+**Creating Proper Tokens:**
+
+For cross-organization use:
+1. Go to GitHub Settings → Developer settings → Personal access tokens
+2. Create token with `repo` scope (and `read:org` if needed)
+3. Add token to secrets in source repository
+4. Use the secret token in your action
 
 ## Contributing
 

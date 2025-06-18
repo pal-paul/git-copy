@@ -48,23 +48,22 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
-        cache: true
-        cache-dependency-path: ${{ github.action_path }}/go.sum
-
-    - name: Build git-copy action
+    - name: Check for action binary
       shell: bash
       run: |
-        cd ${{ github.action_path }}
-        go build -o cmd/app-git-copy ./cmd
-        chmod +x cmd/app-git-copy
+        if [ ! -f "${{ github.action_path }}/cmd/app-git-copy" ]; then
+          echo "❌ Action binary not found. This may be a development version."
+          echo "💡 For releases, the binary is automatically built and committed."
+          echo "📍 Binary expected at: ${{ github.action_path }}/cmd/app-git-copy"
+          exit 1
+        fi
+        echo "✅ Action binary found and ready"
+        ls -la "${{ github.action_path }}/cmd/app-git-copy"
 
     - name: Run git-copy action
       shell: bash
       run: |
+        chmod +x ${{ github.action_path }}/cmd/app-git-copy
         ${{ github.action_path }}/cmd/app-git-copy
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
