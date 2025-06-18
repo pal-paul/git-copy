@@ -54,7 +54,7 @@ jobs:
               exit 0
             fi
           fi
-          
+
           echo "Building production-ready action binary..."
           go build -ldflags="-s -w" -o cmd/app-git-copy ./cmd
           chmod +x cmd/app-git-copy
