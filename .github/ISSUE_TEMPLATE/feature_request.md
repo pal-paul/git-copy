@@ -18,6 +18,7 @@ A clear and concise description of any alternative solutions or features you've 
 
 **Use case**
 Describe the specific use case for this feature:
+
 ```yaml
 # Example of how you would like to use this feature
 - name: Example usage
