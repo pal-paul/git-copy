@@ -8,6 +8,8 @@ jobs:
   test:
     name: Test and Build
     runs-on: ubuntu-latest
+    # Skip release PRs to avoid conflicts with prepare-action-release.yml
+    if: ${{ !startsWith(github.head_ref, 'release-please--branches--master') }}
 
     strategy:
       matrix:
