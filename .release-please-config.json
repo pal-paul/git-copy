@@ -1,0 +1,5 @@
+{
+    "changelog-path": "CHANGELOG.md",
+    "include-v-in-tag": true,
+    "separate-pull-requests": false
+}
