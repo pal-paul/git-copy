@@ -70,12 +70,12 @@ runs:
         INPUT_OWNER: ${{ inputs.owner }}
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_REF_BRANCH: ${{ inputs.ref_branch || 'master' }}
-        INPUT_BRANCH: ${{ inputs.branch || 'auto-generated-branch' }}
+        INPUT_BRANCH: ${{ inputs.branch || 'auto-generated-copy-branch' }}
         INPUT_FILE_PATH: ${{ inputs.file_path || '' }}
         INPUT_DESTINATION_FILE_PATH: ${{ inputs.destination_file_path || '' }}
         INPUT_DIRECTORY: ${{ inputs.directory || '' }}
         INPUT_DESTINATION_DIRECTORY: ${{ inputs.destination_directory || '' }}
-        INPUT_PULL_MESSAGE: ${{ inputs.pull_message || 'Auto-generated pull request' }}
+        INPUT_PULL_MESSAGE: ${{ inputs.pull_message || '' }}
         INPUT_PULL_DESCRIPTION: ${{ inputs.pull_description || '' }}
         INPUT_REVIEWERS: ${{ inputs.reviewers || '' }}
         INPUT_TEAM_REVIEWERS: ${{ inputs.team_reviewers || '' }}
