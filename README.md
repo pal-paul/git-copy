@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy config file to destination repo
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "destination-repo"
@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy documentation to public repo
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "public-docs"
@@ -121,7 +121,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy shared libraries to partner organization
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "partner-org"
           repo: "shared-components"
@@ -178,7 +178,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Dev Environment
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "infrastructure-configs"
@@ -203,7 +203,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Staging Environment
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "infrastructure-configs"
@@ -229,7 +229,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Production Environment
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "infrastructure-configs"
@@ -289,7 +289,7 @@ jobs:
 
       - name: Copy changed config to environment repo
         if: steps.changes.outputs.changed == 'true'
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "${{ matrix.config.env }}-configs"
@@ -319,7 +319,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy shared libraries to partner organization
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "partner-org"
           repo: "shared-components"
@@ -376,7 +376,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy database config
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "database-infrastructure"
@@ -395,7 +395,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy API config
-        uses: pal-paul/git-copy@v4.0.0
+        uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "your-org"
           repo: "api-gateway"
@@ -440,7 +440,7 @@ jobs:
 
 ```yaml
 - name: Complete example
-  uses: pal-paul/git-copy@v4.0.0
+  uses: pal-paul/git-copy@v2.1.4
   with:
     # Required
     owner: "your-org"
@@ -491,6 +491,7 @@ All input parameters for the git-copy action:
 ### Parameter Examples
 
 #### File Copy Parameters
+
 ```yaml
 # Copy single file with rename
 file_path: "src/config.yaml"
@@ -498,6 +499,7 @@ destination_file_path: "config/production.yaml"
 ```
 
 #### Directory Copy Parameters
+
 ```yaml
 # Copy entire directory structure
 directory: "docs/"
@@ -505,6 +507,7 @@ destination_directory: "public-docs/"
 ```
 
 #### Pull Request Parameters
+
 ```yaml
 # Comprehensive PR configuration
 pull_message: "🔧 Update production configuration"
@@ -524,6 +527,7 @@ team_reviewers: "platform-team,security-team"
 ```
 
 #### Branch and Token Parameters
+
 ```yaml
 # Advanced branch and token configuration
 ref_branch: "main"                    # Target base branch
@@ -537,7 +541,7 @@ token: "${{ secrets.CROSS_ORG_TOKEN }}"         # Cross-org token
 
 ```yaml
 # Sync environment-specific configs
-- uses: pal-paul/git-copy@v4.0.0
+- uses: pal-paul/git-copy@v2.1.4
   with:
     owner: "your-org"
     repo: "config-repo"
@@ -550,7 +554,7 @@ token: "${{ secrets.CROSS_ORG_TOKEN }}"         # Cross-org token
 
 ```yaml
 # Keep documentation in sync across repos
-- uses: pal-paul/git-copy@v4.0.0
+- uses: pal-paul/git-copy@v2.1.4
   with:
     owner: "your-org"
     repo: "docs-site"
@@ -563,7 +567,7 @@ token: "${{ secrets.CROSS_ORG_TOKEN }}"         # Cross-org token
 
 ```yaml
 # Distribute shared libraries
-- uses: pal-paul/git-copy@v4.0.0
+- uses: pal-paul/git-copy@v2.1.4
   with:
     owner: "your-org"
     repo: "component-library"
@@ -576,7 +580,7 @@ token: "${{ secrets.CROSS_ORG_TOKEN }}"         # Cross-org token
 
 ```yaml
 # Deploy Terraform configurations
-- uses: pal-paul/git-copy@v4.0.0
+- uses: pal-paul/git-copy@v2.1.4
   with:
     owner: "your-org"
     repo: "terraform-infrastructure"
