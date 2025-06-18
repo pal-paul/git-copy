@@ -463,7 +463,7 @@ env:
 Required token scopes:
 
 - `repo` (for private repositories)
-- `public_repo` (for public repositories) 
+- `public_repo` (for public repositories)
 - `workflow` (if modifying workflow files)
 
 **For Cross-Organization Actions:**
@@ -503,6 +503,7 @@ This error occurs when the GitHub token doesn't have proper permissions to acces
 **Common Causes & Solutions:**
 
 1. **Cross-Organization Access**:
+
    ```yaml
    # ❌ Default GITHUB_TOKEN doesn't work across organizations
    token: "${{ secrets.GITHUB_TOKEN }}"
@@ -518,6 +519,7 @@ This error occurs when the GitHub token doesn't have proper permissions to acces
 
 3. **Incorrect Token Scopes**:
    Required scopes depend on repository type:
+
    ```bash
    # For private repositories
    repo
@@ -549,6 +551,7 @@ This error occurs when the GitHub token doesn't have proper permissions to acces
 **Creating Proper Tokens:**
 
 For cross-organization use:
+
 1. Go to GitHub Settings → Developer settings → Personal access tokens
 2. Create token with `repo` scope (and `read:org` if needed)
 3. Add token to secrets in source repository
@@ -567,12 +570,10 @@ We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTI
 
 1. **Fork and clone the repository**
 
-
    ```bash
    git clone https://github.com/YOUR-USERNAME/git-copy.git
    cd git-copy
    ```
-
 
 2. **Set up development environment**
 
@@ -580,7 +581,6 @@ We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTI
    make install
    make test-all
    ```
-
 
 3. **Make your changes and test**
 
@@ -598,16 +598,13 @@ We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTI
 
 ## CI/CD Pipeline
 
-
 This project uses GitHub Actions for continuous integration and deployment:
 
 ### Automated Testing (`test.yml`)
 
-
 Triggered on: Push to `master`/`master`, Pull requests to `master`/`master`
 
 **Test Matrix:**
-
 
 - **Go versions**: 1.21, 1.22
 - **Operating System**: Ubuntu Latest
@@ -622,7 +619,6 @@ Triggered on: Push to `master`/`master`, Pull requests to `master`/`master`
 - Vulnerability checking (`govulncheck`)
 - Application startup validation
 
-
 **Artifacts:**
 
 - Test coverage reports
@@ -631,7 +627,6 @@ Triggered on: Push to `master`/`master`, Pull requests to `master`/`master`
 - Built binaries
 
 ### Dependency Updates (`dependency-update.yml`)
-
 
 Triggered on: Weekly schedule (Mondays), Manual dispatch
 
@@ -642,7 +637,6 @@ Triggered on: Weekly schedule (Mondays), Manual dispatch
 - GitHub Actions versions
 - Security vulnerability scanning
 
-
 **Pull Request Creation:**
 
 - Automatic PR creation for dependency updates
@@ -650,7 +644,6 @@ Triggered on: Weekly schedule (Mondays), Manual dispatch
 - Reviewer assignment and labeling
 
 ### Release Pipeline (`release.yml`)
-
 
 Triggered on: Git tag push (`v*`)
 
@@ -913,3 +906,4 @@ make lint
 
 - `make test-bench`: Run benchmark tests
 - `make test-all`: Run all test types
+- `make lint`: Run basic linting (CI-compatible)
