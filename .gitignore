@@ -3,3 +3,8 @@
 .vscode
 .local
 .DS_Store
+
+# Build artifacts
+cmd/app-git-copy
+coverage.out
+coverage.html

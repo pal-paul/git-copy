@@ -487,18 +487,24 @@ We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTI
 ### Quick Start for Contributors
 
 1. **Fork and clone the repository**
+
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/git-copy.git
    cd git-copy
    ```
 
+
 2. **Set up development environment**
+
    ```bash
    make install
    make test-all
    ```
 
+
 3. **Make your changes and test**
+
    ```bash
    make fmt        # Format code
    make lint       # Run linting
@@ -513,58 +519,80 @@ We welcome contributions! Please see our [Contributing Guide](.github/CONTRIBUTI
 
 ## CI/CD Pipeline
 
+
 This project uses GitHub Actions for continuous integration and deployment:
 
 ### Automated Testing (`test.yml`)
+
+
 Triggered on: Push to `master`/`master`, Pull requests to `master`/`master`
 
 **Test Matrix:**
+
+
 - **Go versions**: 1.21, 1.22
 - **Operating System**: Ubuntu Latest
 - **Test Types**: Unit, Integration, Race Detection, Coverage
 
 **Quality Checks:**
+
 - Code formatting (`gofmt`)
+
 - Linting (`golangci-lint`)
 - Security scanning (`gosec`)
 - Vulnerability checking (`govulncheck`)
 - Application startup validation
 
+
 **Artifacts:**
+
 - Test coverage reports
+
 - Coverage HTML reports
 - Built binaries
 
 ### Dependency Updates (`dependency-update.yml`)
+
+
 Triggered on: Weekly schedule (Mondays), Manual dispatch
 
 **Automated Updates:**
+
 - Go dependencies (`go get -u ./...`)
+
 - GitHub Actions versions
 - Security vulnerability scanning
 
+
 **Pull Request Creation:**
+
 - Automatic PR creation for dependency updates
 - Comprehensive testing before merge
 - Reviewer assignment and labeling
 
 ### Release Pipeline (`release.yml`)
+
+
 Triggered on: Git tag push (`v*`)
 
 **Release Process:**
+
 1. **Pre-release Testing**: Full test suite on multiple Go versions
+
 2. **Multi-platform Builds**: Linux, macOS, Windows (AMD64/ARM64)
 3. **GitHub Release**: Automatic changelog generation and asset upload
 4. **Docker Images**: Build and push to GitHub Container Registry
 5. **Version Management**: Update major version tags for GitHub Actions
 
 **Release Artifacts:**
+
 - Binary executables for all platforms
 - Checksums for verification
 - Docker images with multiple tags
 - Automated changelog from git history
 
 ### Security Monitoring
+
 - Weekly vulnerability scans
 - Dependency security audits
 - Automatic issue creation for security alerts
@@ -759,25 +787,50 @@ Recent improvements include:
 Available Makefile targets:
 
 - `make test`: Run basic tests
-- `make lint`: Run golangci-lint with automatic version detection
+- `make test-coverage`: Generate coverage report
+- `make test-race`: Run with race detection
+- `make test-bench`: Run benchmark tests
+- `make test-all`: Run all test types
+- `make lint`: Run basic linting (CI-compatible)
+- `make lint-local`: Run comprehensive local linting
 - `make fmt`: Format Go code
 - `make build`: Build the application
+- `make install-tools`: Install development tools
 - `make tidy`: Update and tidy Go modules
 
 ### Linting
 
-The project uses golangci-lint for code quality checks. The configuration automatically detects the installed version and uses the appropriate settings:
+The project uses a two-tier linting approach:
+
+#### CI/CD Linting (`make lint`)
+
+- Basic, stable checks: `go vet` and `go fmt`
+- No external dependencies or version conflicts
+- Reliable across different Go and tool versions
+
+#### Local Development Linting (`make lint-local`)
+
+- Comprehensive checks using golangci-lint
+- Security scanning and vulnerability detection
+- Version-aware configuration
+- Enhanced developer feedback
 
 ```bash
-# Run linting (with automatic version detection)
-make lint
 
-# Or run directly
-golangci-lint run --config .golangci.yml
+# Install development tools first
+make install-tools
+
+# Run comprehensive local linting
+make lint-local
+
+# Or run the script directly
+./scripts/lint.sh
+
+# Basic linting (CI-style)
+make lint
 ```
 
-**Note**: The project supports both golangci-lint v1 and v2 formats. The Makefile automatically detects your version and applies the correct configuration.
-- `make test-coverage`: Generate coverage report
-- `make test-race`: Run with race detection
+**Note**: Advanced linting is now local-only to avoid CI version conflicts. The CI pipeline focuses on reliable, core checks while developers get the full linting experience locally.
+
 - `make test-bench`: Run benchmark tests
 - `make test-all`: Run all test types

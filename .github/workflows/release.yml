@@ -33,7 +33,7 @@ jobs:
           go test -v -race ./test/...
 
       - name: Build application
-        run: go build -o git-copy ./cmd
+        run: go build -o ./cmd/app-git-copy ./cmd
 
   release:
     name: Create Release
