@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: write
       pull-requests: write
@@ -19,3 +22,70 @@ jobs:
           token: ${{ secrets.BOT_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  build-and-release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Run tests
+        run: go test -v ./test/...
+
+      - name: Create releases directory
+        run: mkdir -p releases
+
+      - name: Build binaries for multiple platforms
+        run: |
+          # Linux AMD64
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-linux-amd64 ./cmd
+          
+          # Linux ARM64
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o releases/app-git-copy-linux-arm64 ./cmd
+          
+          # macOS AMD64
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-amd64 ./cmd
+          
+          # macOS ARM64 (Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-arm64 ./cmd
+          
+          # Windows AMD64
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-windows-amd64.exe ./cmd
+          
+          # Make binaries executable
+          chmod +x releases/app-git-copy-*
+
+      - name: Generate checksums
+        run: |
+          cd releases
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            releases/*
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            ## Download the appropriate binary for your platform:
+            - **Linux AMD64**: `app-git-copy-linux-amd64`
+            - **Linux ARM64**: `app-git-copy-linux-arm64`
+            - **macOS Intel**: `app-git-copy-darwin-amd64`
+            - **macOS Apple Silicon**: `app-git-copy-darwin-arm64`
+            - **Windows**: `app-git-copy-windows-amd64.exe`
+            
+            All binaries are statically compiled and ready to use. Verify downloads with `checksums.txt`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
