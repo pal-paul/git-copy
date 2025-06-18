@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -479,13 +480,13 @@ func BenchmarkIoReadDir(b *testing.B) {
 
 	// Create 50 test files in various subdirectories
 	for i := 0; i < 50; i++ {
-		subdir := filepath.Join(tempDir, "subdir"+string(rune(i%5)))
+		subdir := filepath.Join(tempDir, fmt.Sprintf("subdir%d", i%5))
 		err := os.MkdirAll(subdir, 0o755)
 		if err != nil {
 			b.Fatalf("Failed to create subdirectory: %v", err)
 		}
 
-		testFile := filepath.Join(subdir, "file"+string(rune(i))+".txt")
+		testFile := filepath.Join(subdir, fmt.Sprintf("file%d.txt", i))
 		err = os.WriteFile(testFile, []byte("benchmark content"), 0o644)
 		if err != nil {
 			b.Fatalf("Failed to create test file: %v", err)
