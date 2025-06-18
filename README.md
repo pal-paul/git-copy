@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy config file to destination repo
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "destination-repo"
@@ -43,14 +43,20 @@ jobs:
           file_path: "config/app.json"
           destination_file_path: "configs/production.json"
           branch: "config-update-${{ github.sha }}"
-          pull_message: "Update production config from master repo"
-          pull_description: "Automated config sync from ${{ github.repository }}"
-          reviewers: "devops-team,config-mastertainer"
+          pull_message: "🔧 Update production config from master repo"
+          pull_description: |
+            Automated config sync from ${{ github.repository }}
+            
+            **Changes:**
+            - Updated production configuration
+            - Synced from commit: ${{ github.sha }}
+            - Branch: ${{ github.ref_name }}
+          reviewers: "devops-team,config-maintainer"
 ```
 
-### Directory Copy
+### Directory Synchronization
 
-Copy an entire directory structure:
+Copy an entire directory structure with comprehensive workflow:
 
 ```yaml
 name: Sync Documentation
@@ -58,6 +64,9 @@ on:
   push:
     branches: [master]
     paths: ["docs/**"]
+  schedule:
+    # Sync docs daily at 2 AM UTC
+    - cron: "0 2 * * *"
 
 jobs:
   sync-docs:
@@ -67,7 +76,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy documentation to public repo
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "public-docs"
@@ -77,18 +86,70 @@ jobs:
           branch: "docs-sync-${{ github.run_number }}"
           pull_message: "📚 Sync API documentation"
           pull_description: |
-            Automated documentation sync from ${{ github.repository }}
+            🔄 **Automated Documentation Sync**
             
-            Updated files:
+            **Source:** ${{ github.repository }}
+            **Commit:** ${{ github.sha }}
+            **Triggered by:** ${{ github.event_name }}
+            
+            **Updated Documentation:**
             - API specifications
-            - Code examples
+            - Code examples  
             - Integration guides
+            - Troubleshooting sections
+            
+            **Review Required:** Documentation team review needed before merge.
           team_reviewers: "docs-team"
+          reviewers: "tech-writer-lead"
+```
+
+### Cross-Organization Copy
+
+Copy files between different GitHub organizations:
+
+```yaml
+name: Sync Shared Libraries
+on:
+  release:
+    types: [published]
+
+jobs:
+  sync-to-partner-org:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+
+      - name: Copy shared libraries to partner organization
+        uses: pal-paul/git-copy@v4.0.0
+        with:
+          owner: "partner-org"
+          repo: "shared-components"
+          token: "${{ secrets.PARTNER_ORG_TOKEN }}"  # Important: Use cross-org token
+          directory: "lib/shared/"
+          destination_directory: "vendor/your-org-libs/"
+          branch: "update-shared-libs-${{ github.event.release.tag_name }}"
+          pull_message: "📦 Update shared libraries to ${{ github.event.release.tag_name }}"
+          pull_description: |
+            🚀 **Shared Library Update**
+            
+            **Release:** ${{ github.event.release.name }}
+            **Tag:** ${{ github.event.release.tag_name }}
+            **Release Notes:** ${{ github.event.release.html_url }}
+            
+            **Updated Components:**
+            - Core utilities
+            - Authentication helpers
+            - Data processing modules
+            
+            **Breaking Changes:** See release notes for migration guide.
+          reviewers: "integration-team"
+          team_reviewers: "shared-lib-maintainers"
 ```
 
 ### Multi-Environment Deployment
 
-Deploy different configurations to multiple environments:
+Deploy different configurations to multiple environments with conditional logic:
 
 ```yaml
 name: Deploy Settings to Multiple Environments
@@ -117,15 +178,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Dev Environment
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "infrastructure-configs"
           token: "${{ secrets.DEPLOY_TOKEN }}"
           directory: "settings/dev/"
           destination_directory: "environments/dev/configs/"
-          branch: "dev-config-update"
+          branch: "dev-config-update-${{ github.run_number }}"
           pull_message: "🚀 Update dev environment settings"
+          pull_description: |
+            **Development Environment Update**
+            
+            **Source:** ${{ github.repository }}
+            **Environment:** Development
+            **Auto-merge:** Safe for dev environment
           reviewers: "dev-team"
 
   deploy-staging:
@@ -136,44 +203,102 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Staging Environment
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "infrastructure-configs"
           token: "${{ secrets.DEPLOY_TOKEN }}"
           directory: "settings/staging/"
           destination_directory: "environments/staging/configs/"
-          branch: "staging-config-update"
+          branch: "staging-config-update-${{ github.run_number }}"
           pull_message: "🧪 Update staging environment settings"
+          pull_description: |
+            **Staging Environment Update**
+            
+            **Environment:** Staging
+            **Approval Required:** DevOps team approval needed
+            **Testing:** Requires validation before production
           reviewers: "staging-team,devops-lead"
 
   deploy-production:
     if: github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
-    environment: production
+    environment: production  # Requires approval
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Deploy to Production Environment
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "infrastructure-configs"
-          token: "${{ secrets.DEPLOY_TOKEN }}"
+          token: "${{ secrets.PRODUCTION_DEPLOY_TOKEN }}"
           directory: "settings/production/"
           destination_directory: "environments/production/configs/"
-          branch: "production-config-update"
-          pull_message: "🔥 Update production environment settings"
+          branch: "production-config-update-${{ github.run_number }}"
+          pull_message: "🔥 PRODUCTION: Update production environment settings"
           pull_description: |
-            **PRODUCTION DEPLOYMENT**
+            🚨 **PRODUCTION ENVIRONMENT UPDATE**
             
-            Changes being deployed:
-            - Configuration updates from commit ${{ github.sha }}
-            - Source: ${{ github.repository }}
-            - Triggered by: ${{ github.actor }}
-          reviewers: "production-team,security-team"
-          team_reviewers: "platform-engineering"
+            **Environment:** Production
+            **Approval Required:** Manager approval mandatory
+            **Impact:** Live system configuration changes
+            **Rollback Plan:** Previous config available in git history
+            
+            **Checklist:**
+            - [ ] Configuration validated in staging
+            - [ ] Backup plan confirmed
+            - [ ] Monitoring alerts configured
+            - [ ] Team notified of deployment
+          reviewers: "production-team"
+          team_reviewers: "devops-managers,security-team"
+```
+
+### Conditional File Copy
+
+Copy files based on specific conditions and path filters:
+
+```yaml
+name: Conditional Config Sync
+on:
+  push:
+    branches: [master]
+
+jobs:
+  sync-configs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - { file: "database.yml", env: "production", reviewers: "dba-team" }
+          - { file: "api.yml", env: "staging", reviewers: "backend-team" }
+          - { file: "frontend.yml", env: "development", reviewers: "frontend-team" }
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check if config file changed
+        id: changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "configs/${{ matrix.config.file }}"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Copy changed config to environment repo
+        if: steps.changes.outputs.changed == 'true'
+        uses: pal-paul/git-copy@v4.0.0
+        with:
+          owner: "your-org"
+          repo: "${{ matrix.config.env }}-configs"
+          token: "${{ secrets.CONFIG_SYNC_TOKEN }}"
+          file_path: "configs/${{ matrix.config.file }}"
+          destination_file_path: "app/${{ matrix.config.file }}"
+          branch: "update-${{ matrix.config.file }}-${{ github.sha }}"
+          pull_message: "🔧 Update ${{ matrix.config.file }} for ${{ matrix.config.env }}"
+          reviewers: "${{ matrix.config.reviewers }}"
 ```
 
 ### Cross-Organization Copy
@@ -194,7 +319,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy shared libraries to partner organization
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "partner-org"
           repo: "shared-components"
@@ -251,7 +376,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy database config
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "database-infrastructure"
@@ -270,7 +395,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Copy API config
-        uses: pal-paul/git-copy@v1
+        uses: pal-paul/git-copy@v4.0.0
         with:
           owner: "your-org"
           repo: "api-gateway"
@@ -315,7 +440,7 @@ jobs:
 
 ```yaml
 - name: Complete example
-  uses: pal-paul/git-copy@v1
+  uses: pal-paul/git-copy@v4.0.0
   with:
     # Required
     owner: "your-org"
@@ -341,13 +466,78 @@ jobs:
     team_reviewers: "platform-team,security-team"
 ```
 
+## Parameters
+
+All input parameters for the git-copy action:
+
+| Parameter | Description | Required | Default | Example |
+|-----------|-------------|----------|---------|---------|
+| `owner` | GitHub owner/organization name of destination repo | ✅ Yes | - | `"your-org"` |
+| `repo` | GitHub repository name of destination repo | ✅ Yes | - | `"target-repo"` |
+| `token` | GitHub token with repo access | ✅ Yes | - | `"${{ secrets.GITHUB_TOKEN }}"` |
+| `ref_branch` | Base branch of destination repo | ❌ No | `master` | `"main"`, `"develop"` |
+| `branch` | Branch name for the pull request | ❌ No | Auto-generated | `"config-update-123"` |
+| `file_path` | Path to source file (for single file copy) | ❌ No* | - | `"config/app.json"` |
+| `destination_file_path` | Destination path for the file | ❌ No* | Same as source | `"configs/production.json"` |
+| `directory` | Path to source directory (for directory copy) | ❌ No* | - | `"docs/"` |
+| `destination_directory` | Destination path for directory | ❌ No* | Same as source | `"public-docs/"` |
+| `pull_message` | Pull request title | ❌ No | Auto-generated | `"Update configuration"` |
+| `pull_description` | Pull request description | ❌ No | Auto-generated | `"Automated sync from master repo"` |
+| `reviewers` | Comma-separated list of reviewers | ❌ No | None | `"user1,user2,user3"` |
+| `team_reviewers` | Comma-separated list of team reviewers | ❌ No | None | `"team1,team2"` |
+
+**\* Note:** Either `file_path` OR `directory` must be provided (not both).
+
+### Parameter Examples
+
+#### File Copy Parameters
+```yaml
+# Copy single file with rename
+file_path: "src/config.yaml"
+destination_file_path: "config/production.yaml"
+```
+
+#### Directory Copy Parameters
+```yaml
+# Copy entire directory structure
+directory: "docs/"
+destination_directory: "public-docs/"
+```
+
+#### Pull Request Parameters
+```yaml
+# Comprehensive PR configuration
+pull_message: "🔧 Update production configuration"
+pull_description: |
+  **Configuration Update**
+  
+  - Updated production settings
+  - Synced from ${{ github.repository }}
+  - Commit: ${{ github.sha }}
+  
+  **Review Checklist:**
+  - [ ] Configuration values are correct
+  - [ ] No sensitive data exposed
+  - [ ] Testing completed
+reviewers: "config-admin,devops-lead"
+team_reviewers: "platform-team,security-team"
+```
+
+#### Branch and Token Parameters
+```yaml
+# Advanced branch and token configuration
+ref_branch: "main"                    # Target base branch
+branch: "auto-update-${{ github.run_number }}"  # Dynamic branch name
+token: "${{ secrets.CROSS_ORG_TOKEN }}"         # Cross-org token
+```
+
 ## Common Use Cases
 
 ### 1. Configuration Management
 
 ```yaml
 # Sync environment-specific configs
-- uses: pal-paul/git-copy@v1
+- uses: pal-paul/git-copy@v4.0.0
   with:
     owner: "your-org"
     repo: "config-repo"
@@ -360,7 +550,7 @@ jobs:
 
 ```yaml
 # Keep documentation in sync across repos
-- uses: pal-paul/git-copy@v1
+- uses: pal-paul/git-copy@v4.0.0
   with:
     owner: "your-org"
     repo: "docs-site"
@@ -373,7 +563,7 @@ jobs:
 
 ```yaml
 # Distribute shared libraries
-- uses: pal-paul/git-copy@v1
+- uses: pal-paul/git-copy@v4.0.0
   with:
     owner: "your-org"
     repo: "component-library"
@@ -386,7 +576,7 @@ jobs:
 
 ```yaml
 # Deploy Terraform configurations
-- uses: pal-paul/git-copy@v1
+- uses: pal-paul/git-copy@v4.0.0
   with:
     owner: "your-org"
     repo: "terraform-infrastructure"
