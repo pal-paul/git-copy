@@ -12,7 +12,10 @@ jobs:
   prepare-action:
     name: Build Action Binary for Release PR
     runs-on: ubuntu-latest
-    if: startsWith(github.head_ref, 'release-please--branches--master')
+    # Only run on release PRs and skip if triggered by bot
+    if: |
+      startsWith(github.head_ref, 'release-please--branches--master') &&
+      github.actor != 'github-actions[bot]'
     permissions:
       contents: write
       pull-requests: write
@@ -39,6 +42,19 @@ jobs:
 
       - name: Build optimized action binary
         run: |
+          # Check if binary already exists and is recent
+          if [ -f "cmd/app-git-copy" ]; then
+            echo "Binary already exists, checking if rebuild is needed..."
+            # Check if Go source files are newer than binary
+            if [ $(find ./cmd -name "*.go" -newer cmd/app-git-copy | wc -l) -eq 0 ] && 
+               [ $(find ./internal -name "*.go" -newer cmd/app-git-copy 2>/dev/null | wc -l) -eq 0 ]; then
+              echo "✅ Binary is up to date, skipping rebuild"
+              chmod +x cmd/app-git-copy
+              ls -la cmd/app-git-copy
+              exit 0
+            fi
+          fi
+
           echo "Building production-ready action binary..."
           go build -ldflags="-s -w" -o cmd/app-git-copy ./cmd
           chmod +x cmd/app-git-copy
