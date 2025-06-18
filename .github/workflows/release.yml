@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "v*"
 
 jobs:
   release-please:
@@ -21,6 +23,12 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  build-and-release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -31,19 +39,45 @@ jobs:
           cache: true
           cache-dependency-path: go.sum
 
-      - name: Install dependencies
-        run: |
-          make install
+      - name: Run tests
+        run: go test -v ./test/...
 
-      - name: Build
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o cmd/app cmd/cmd.go
-          chmod +x cmd/app
+      - name: Create releases directory
+        run: mkdir -p releases
 
-      - name: Commit and push binary
+      - name: Build binaries for multiple platforms
         run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git add cmd/app
-          git commit -m "Update binary [skip ci]" || echo "No changes to commit"
-          git push
+          # Linux AMD64
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-linux-amd64 ./cmd
+
+          # Linux ARM64
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o releases/app-git-copy-linux-arm64 ./cmd
+
+          # macOS Intel
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-amd64 ./cmd
+
+          # macOS Apple Silicon
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-arm64 ./cmd
+
+          # Windows AMD64
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-windows-amd64.exe ./cmd
+
+          # Make binaries executable
+          chmod +x releases/app-git-copy-*
+
+      - name: Generate checksums
+        run: |
+          cd releases
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: releases/*
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
