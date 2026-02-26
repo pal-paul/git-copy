@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: '[BUG] '
+title: "[BUG] "
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
 **Describe the bug**
@@ -20,11 +19,11 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-*Environment:**
+\*Environment:\*\*
 
- OS: [e.g. Ubuntu 20.04, macOS 12, Windows 11]
+OS: [e.g. Ubuntu 20.04, macOS 12, Windows 11]
 
-- Go version: [e.g. 1.21.0]
+- Go version: [e.g. 1.26.0]
 - git-copy version: [e.g. v1.0.0]
 
 **Configuration:**
@@ -35,7 +34,6 @@ A clear and concise description of what you expected to happen.
   uses: pal-paul/git-copy@v2.1.4
   with:
     # your configuration here
-
 ```
 
 **Logs:**
