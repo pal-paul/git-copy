@@ -81,7 +81,48 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Build release assets
+        run: |
+          mkdir -p releases
+
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o releases/app-git-copy-linux-amd64 ./cmd
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o releases/app-git-copy-linux-arm64 ./cmd
+          GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-amd64 ./cmd
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-arm64 ./cmd
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o releases/app-git-copy-windows-amd64.exe ./cmd
+
+          chmod +x releases/app-git-copy-*
+
+          cd releases
+
+          # Archive assets (both tar.gz and zip for easier consumption)
+          tar -czf app-git-copy-linux-amd64.tar.gz app-git-copy-linux-amd64
+          zip -q app-git-copy-linux-amd64.zip app-git-copy-linux-amd64
+
+          tar -czf app-git-copy-linux-arm64.tar.gz app-git-copy-linux-arm64
+          zip -q app-git-copy-linux-arm64.zip app-git-copy-linux-arm64
+
+          tar -czf app-git-copy-darwin-amd64.tar.gz app-git-copy-darwin-amd64
+          zip -q app-git-copy-darwin-amd64.zip app-git-copy-darwin-amd64
+
+          tar -czf app-git-copy-darwin-arm64.tar.gz app-git-copy-darwin-arm64
+          zip -q app-git-copy-darwin-arm64.zip app-git-copy-darwin-arm64
+
+          tar -czf app-git-copy-windows-amd64.tar.gz app-git-copy-windows-amd64.exe
+          zip -q app-git-copy-windows-amd64.zip app-git-copy-windows-amd64.exe
+
+          sha256sum * > checksums.txt
+          ls -lah
+
       - name: Create or update draft release
+        id: draft
         env:
           GH_TOKEN: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -92,6 +133,7 @@ jobs:
           if [ -n "${existing_draft_tag}" ]; then
             echo "Updating existing draft release: ${existing_draft_tag}"
             gh release edit "${existing_draft_tag}" --target "${TARGET_SHA}" --title "Release ${existing_draft_tag}"
+            echo "tag=${existing_draft_tag}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -115,6 +157,13 @@ jobs:
             --title "Release ${next_tag}" \
             --draft \
             --generate-notes
+          echo "tag=${next_tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload draft release assets
+        env:
+          GH_TOKEN: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ steps.draft.outputs.tag }}" releases/* --clobber
 
   skip-draft-release:
     name: Skip draft release (no binary PR change)
