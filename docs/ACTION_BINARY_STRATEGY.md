@@ -22,16 +22,17 @@ This repository uses a two-phase binary management strategy to keep development 
 
 ## Workflows
 
-### 1. `prepare-action-release.yml`
+### 1. `release.yml`
 
-- **Trigger**: Release Please PRs (branches starting with `release-please--`)
-- **Purpose**: Builds and commits optimized binary to release PRs
+- **Trigger**: Push to `master` (including merged PRs)
+- **Purpose**: Prepares release artifacts in two steps:
+  1. Builds Linux action binary and opens a dedicated PR containing only `cmd/app-git-copy`
+  2. Creates (or updates) a GitHub draft release for manual publishing
 - **Features**:
-  - Runs full test suite before building
-  - Creates optimized binary with `-ldflags="-s -w"`
-  - Force-adds binary (overrides `.gitignore`)
-  - Comments on PR with binary info
-  - **Complete solution**: Handles both PR binary and final release binary
+  - Runs test suite before building
+  - Builds optimized binary with `-ldflags="-s -w"`
+  - Opens an isolated binary-update PR automatically
+  - Keeps release as draft so maintainers control final publish timing
 
 ## Benefits
 
@@ -51,11 +52,11 @@ This repository uses a two-phase binary management strategy to keep development 
 
 ### ✅ Release Benefits
 
-- Automated binary management (single workflow handles everything)
-- No manual steps for maintainers
-- Binary always matches released code
-- Clear release process
-- **No workflow loops or conflicts**
+- Automated binary refresh after every merge to `master`
+- Clear PR-first process for binary updates
+- Draft-first release flow for manual control and validation
+- Binary always produced in Linux runner-compatible format
+- **No release-PR coupling required**
 
 ## File Structure
 
@@ -66,8 +67,7 @@ cmd/
 └── ...
 
 .github/workflows/
-├── prepare-action-release.yml  # Builds binary for release PRs (complete solution)
-├── release.yml                 # Multi-platform releases via release-please
+├── release.yml                 # Builds binary PR + creates/updates release draft
 ├── test.yml                    # CI testing and validation
 └── ...
 
@@ -101,11 +101,11 @@ make clean
 
 ### For Maintainers
 
-1. Create release PR (Release Please handles this)
-2. `prepare-action-release.yml` automatically builds and commits binary to the PR
-3. Merge release PR → Binary is included in the release automatically
-4. Users can immediately use the new version
-5. **No additional workflows needed** - everything is handled by one workflow
+1. Merge code into `master`
+2. `release.yml` automatically opens a binary-update PR
+3. `release.yml` creates or updates a draft release
+4. Merge the binary PR
+5. Publish the prepared draft release manually
 
 ## Troubleshooting
 
@@ -139,7 +139,7 @@ The release binary is built with optimization flags:
 
 ## Implementation Notes
 
-1. **Force Add Strategy**: Release workflows use `git add -f` to override `.gitignore`
-2. **Conditional Workflows**: Only runs on release branches to avoid unnecessary builds
+1. **Isolated Binary PR**: Release workflow keeps binary updates in a separate PR
+2. **Draft-first Release**: Workflow creates a draft release instead of auto-publishing
 3. **Error Handling**: Action includes binary existence check with helpful error messages
 4. **Optimization**: Release binaries are optimized for size and performance

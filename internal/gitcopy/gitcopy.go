@@ -15,13 +15,6 @@ import (
 	"github.com/pal-paul/go-libraries/pkg/git"
 )
 
-func isFileNotFoundError(err error) bool {
-	if err == nil {
-		return false
-	}
-	return strings.Contains(err.Error(), "file not found")
-}
-
 type Environment struct {
 	GitHub struct {
 		Token    string `env:"GITHUB_TOKEN,required=true"`
@@ -80,9 +73,6 @@ func IoReadDir(root string) ([]string, error) {
 		if file.IsDir() {
 			nestedFiles, err := IoReadDir(filepath.Join(root, file.Name()))
 			if err != nil {
-				if os.IsPermission(err) {
-					continue
-				}
 				log.Printf("ERROR: reading directory %s: %v", filepath.Join(root, file.Name()), err)
 				continue
 			}
@@ -113,9 +103,18 @@ func ReadFile(path string) ([]byte, error) {
 	return byteValue, nil
 }
 
+func isNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errText := strings.ToLower(err.Error())
+	return strings.Contains(errText, "404") || strings.Contains(errText, "not found")
+}
+
 // RunApplication executes the master application logic
 func RunApplication() {
-	var baseBranch string
+	var refBranch string
 	var compareBranch string
 
 	if envVar.Input.FilePath != "" && envVar.Input.DestinationFilePath == "" {
@@ -156,9 +155,8 @@ func RunApplication() {
 
 	// Initialize branch handling for both file and directory operations
 	if envVar.Input.FilePath != "" || envVar.Input.Directory != "" {
-		baseBranch = envVar.Input.RefBranch
-		compareBranch = baseBranch
-		refDefaultBranch, err := gitObj.GetBranch(baseBranch)
+		refBranch = envVar.Input.RefBranch
+		refDefaultBranch, err := gitObj.GetBranch(refBranch)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -171,9 +169,14 @@ func RunApplication() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			compareBranch = refBranch
 		} else {
 			compareBranch = envVar.Input.Branch
 		}
+	}
+
+	if compareBranch == "" {
+		compareBranch = refBranch
 	}
 
 	var messages []string
@@ -188,11 +191,8 @@ func RunApplication() {
 			log.Fatal(err)
 		}
 		fileObj, err := gitObj.GetAFile(compareBranch, envVar.Input.DestinationFilePath)
-		if err != nil && !isFileNotFoundError(err) {
+		if err != nil {
 			log.Fatal(err)
-		}
-		if isFileNotFoundError(err) {
-			fileObj = nil
 		}
 		if fileObj == nil {
 			_, err = gitObj.CreateUpdateAFile(
@@ -254,21 +254,24 @@ func RunApplication() {
 			}
 
 			fileObj, err := gitObj.GetAFile(compareBranch, destinationFile)
-			if err != nil && !isFileNotFoundError(err) {
-				log.Printf("ERROR: could not read destination file %s: %v", destinationFile, err)
-				continue
-			}
-			if isFileNotFoundError(err) {
-				fileObj = nil
+			if err != nil {
+				if !isNotFoundError(err) {
+					log.Printf("ERROR: could not fetch destination file %s on branch %s: %v", destinationFile, refBranch, err)
+					continue
+				}
 			}
 
 			encoded := b64.StdEncoding.EncodeToString(fileContent)
+			normalizedDestinationContent := ""
+			if fileObj != nil {
+				normalizedDestinationContent = strings.ReplaceAll(fileObj.Content, "\n", "")
+			}
 			fileOp := git.FileOperation{
 				Path:    destinationFile,
-				Content: encoded,
+				Content: string(fileContent),
 			}
 			if fileObj != nil {
-				if encoded != fileObj.Content {
+				if encoded != normalizedDestinationContent {
 					fileOp.Sha = fileObj.Sha
 					batch.Files = append(batch.Files, fileOp)
 				}
@@ -287,7 +290,7 @@ func RunApplication() {
 			messages = append(messages, fmt.Sprintf("updated %d files in %s", len(batch.Files), envVar.Input.DestinationDirectory))
 		} else {
 			log.Printf("INFO: No files need updating in %s", envVar.Input.Directory)
-			messages = append(messages, fmt.Sprintf("No files need updating in %s", envVar.Input.Directory))
+			messages = append(messages, fmt.Sprintf("no files updated in %s", envVar.Input.DestinationDirectory))
 		}
 
 	}
@@ -303,19 +306,21 @@ func RunApplication() {
 	}
 
 	if envVar.Input.FilePath != "" || envVar.Input.Directory != "" {
-		prNumber, err := gitObj.CreatePullRequest(
-			baseBranch,
-			envVar.Input.Branch,
-			envVar.Input.PullMessage,
-			envVar.Input.PullDescription,
-		)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if gitReviewers.Users != nil || gitReviewers.Teams != nil {
-			err = gitObj.AddReviewers(prNumber, gitReviewers)
+		if refBranch != envVar.Input.Branch {
+			prNumber, err := gitObj.CreatePullRequest(
+				refBranch,
+				envVar.Input.Branch,
+				envVar.Input.PullMessage,
+				envVar.Input.PullDescription,
+			)
 			if err != nil {
 				log.Fatal(err)
+			}
+			if gitReviewers.Users != nil || gitReviewers.Teams != nil {
+				err = gitObj.AddReviewers(prNumber, gitReviewers)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 	}

@@ -1,33 +1,21 @@
-name: Release
+name: Release Automation
 
 on:
   push:
     branches:
       - master
-    tags:
-      - "v*"
+  workflow_dispatch:
 
 jobs:
-  release-please:
+  prepare-binary-pr:
+    name: Build binary and open PR
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    outputs:
+      pr_operation: ${{ steps.binary-pr.outputs.pull-request-operation }}
+      pr_number: ${{ steps.binary-pr.outputs.pull-request-number }}
     permissions:
       contents: write
       pull-requests: write
-    steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
-        with:
-          release-type: go
-          token: ${{ secrets.BOT_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-
-  build-and-release:
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -42,42 +30,100 @@ jobs:
       - name: Run tests
         run: go test -v ./test/...
 
-      - name: Create releases directory
-        run: mkdir -p releases
-
-      - name: Build binaries for multiple platforms
+      - name: Build Linux action binary
         run: |
-          # Linux AMD64
-          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-linux-amd64 ./cmd
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o cmd/app-git-copy ./cmd
+          chmod +x cmd/app-git-copy
+          file cmd/app-git-copy
 
-          # Linux ARM64
-          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o releases/app-git-copy-linux-arm64 ./cmd
-
-          # macOS Intel
-          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-amd64 ./cmd
-
-          # macOS Apple Silicon
-          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o releases/app-git-copy-darwin-arm64 ./cmd
-
-          # Windows AMD64
-          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o releases/app-git-copy-windows-amd64.exe ./cmd
-
-          # Make binaries executable
-          chmod +x releases/app-git-copy-*
-
-      - name: Generate checksums
-        run: |
-          cd releases
-          sha256sum * > checksums.txt
-          cat checksums.txt
-
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
+      - name: Create binary update PR
+        id: binary-pr
+        uses: peter-evans/create-pull-request@v5
         with:
-          files: releases/*
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+          token: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          base: master
+          branch: chore/release-binary
+          branch-suffix: timestamp
+          commit-message: "chore: update action binary for release"
+          title: "chore: update action binary for release"
+          body: |
+            ## Automated Binary Refresh
+
+            This PR was generated automatically after a merge to `master`.
+
+            ### Included changes
+            - Rebuilt `cmd/app-git-copy` for GitHub Actions runners (`linux/amd64`)
+            - Prepared release binary update in an isolated PR
+
+            Merge this PR before publishing the draft release.
+          add-paths: |
+            cmd/app-git-copy
+          labels: |
+            automated
+            release
+            binary
+          delete-branch: true
+
+  prepare-draft-release:
+    name: Create or update draft release
+    runs-on: ubuntu-latest
+    needs: [prepare-binary-pr]
+    if: |
+      needs.prepare-binary-pr.outputs.pr_operation == 'created' ||
+      needs.prepare-binary-pr.outputs.pr_operation == 'updated'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Create or update draft release
         env:
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.BOT_TOKEN || secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          existing_draft_tag=$(gh api "repos/${REPO}/releases?per_page=100" --jq '.[] | select(.draft == true) | .tag_name' | head -n1)
+
+          if [ -n "${existing_draft_tag}" ]; then
+            echo "Updating existing draft release: ${existing_draft_tag}"
+            gh release edit "${existing_draft_tag}" --target "${TARGET_SHA}" --title "Release ${existing_draft_tag}"
+            exit 0
+          fi
+
+          latest_tag=$(git tag -l 'v*' | sort -V | tail -n1)
+
+          if [[ -z "${latest_tag}" ]]; then
+            next_tag="v0.1.0"
+          elif [[ "${latest_tag}" =~ ^v([0-9]+)$ ]]; then
+            next_tag="v${BASH_REMATCH[1]}.0.1"
+          elif [[ "${latest_tag}" =~ ^v([0-9]+)\.([0-9]+)$ ]]; then
+            next_tag="v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.1"
+          elif [[ "${latest_tag}" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            next_tag="v${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+          else
+            next_tag="v0.1.0"
+          fi
+
+          echo "Creating new draft release: ${next_tag}"
+          gh release create "${next_tag}" \
+            --target "${TARGET_SHA}" \
+            --title "Release ${next_tag}" \
+            --draft \
+            --generate-notes
+
+  skip-draft-release:
+    name: Skip draft release (no binary PR change)
+    runs-on: ubuntu-latest
+    needs: [prepare-binary-pr]
+    if: |
+      !(needs.prepare-binary-pr.outputs.pr_operation == 'created' ||
+      needs.prepare-binary-pr.outputs.pr_operation == 'updated')
+    steps:
+      - name: Explain why draft release was skipped
+        run: |
+          echo "Skipping draft release creation."
+          echo "Binary PR operation: ${{ needs.prepare-binary-pr.outputs.pr_operation }}"
+          echo "Draft release is only allowed when binary PR is created or updated."
