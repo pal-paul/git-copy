@@ -165,6 +165,7 @@ func RunApplication() {
 	}
 
 	var messages []string
+	hasChanges := false
 	if envVar.Input.PullDescription != "" {
 		messages = append(messages, envVar.Input.PullDescription)
 	}
@@ -189,6 +190,7 @@ func RunApplication() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			hasChanges = true
 			messages = append(messages, fmt.Sprintf("file %s created at %s", envVar.Input.DestinationFilePath, time.Now().Format("2006-01-02 15:04:05")))
 		} else {
 			encoded := b64.StdEncoding.EncodeToString(fileContent)
@@ -203,12 +205,13 @@ func RunApplication() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				hasChanges = true
+				messages = append(messages, fmt.Sprintf("file %s updated to %s", envVar.Input.FilePath, envVar.Input.DestinationFilePath))
 			} else {
 				log.Printf("INFO: No changes detected for %s", envVar.Input.FilePath)
+				messages = append(messages, fmt.Sprintf("no changes detected for %s", envVar.Input.FilePath))
 			}
-			messages = append(messages, fmt.Sprintf("file %s updated to %s", envVar.Input.FilePath, envVar.Input.DestinationFilePath))
 		}
-		messages = append(messages, fmt.Sprintf("file %s updated to %s", envVar.Input.FilePath, envVar.Input.DestinationFilePath))
 	}
 
 	if envVar.Input.Directory != "" {
@@ -260,9 +263,11 @@ func RunApplication() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			hasChanges = true
 			messages = append(messages, fmt.Sprintf("directory %s updated to %s", envVar.Input.Directory, envVar.Input.DestinationDirectory))
 			messages = append(messages, fmt.Sprintf("updated %d files in %s", len(batch.Files), envVar.Input.DestinationDirectory))
 		} else {
+			log.Printf("INFO: No files need updating in %s", envVar.Input.Directory)
 			messages = append(messages, fmt.Sprintf("no files updated in %s", envVar.Input.DestinationDirectory))
 		}
 
@@ -272,6 +277,11 @@ func RunApplication() {
 		envVar.Input.PullMessage = fmt.Sprintf("copy file(s) at %s", time.Now().Format("2006-01-02 15:04:05"))
 	}
 	envVar.Input.PullDescription = strings.Join(messages, "\n")
+
+	if !hasChanges {
+		log.Println("INFO: No changes detected; skipping pull request creation")
+		return
+	}
 
 	if envVar.Input.FilePath != "" || envVar.Input.Directory != "" {
 		if refBranch != envVar.Input.Branch {
