@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.3](https://github.com/pal-paul/git-copy/compare/v4.0.2...v4.0.3) (2026-02-26)
+
+
+### Bug Fixes
+
+* dir copy issue ([#94](https://github.com/pal-paul/git-copy/issues/94)) ([cacfc0a](https://github.com/pal-paul/git-copy/commit/cacfc0a4bd596eac358efceb0073032d0a881552))
+
 ## [4.0.2](https://github.com/pal-paul/git-copy/compare/v4.0.1...v4.0.2) (2026-02-26)
 
 
