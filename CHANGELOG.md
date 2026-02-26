@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.2](https://github.com/pal-paul/git-copy/compare/v4.0.1...v4.0.2) (2026-02-26)
+
+
+### Bug Fixes
+
+* issues ([b24cb9d](https://github.com/pal-paul/git-copy/commit/b24cb9de5adec8a50917c4bbb19e743ca1718901))
+
 ## [2.3.0](https://github.com/pal-paul/git-copy/compare/v2.2.0...v2.3.0) (2025-06-18)
 
 
