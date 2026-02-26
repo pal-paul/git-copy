@@ -3,6 +3,8 @@ name: Test and Build
 on:
   pull_request:
     branches: [master, dev/*]
+    paths-ignore:
+      - "cmd/app-git-copy"
 
 jobs:
   test:

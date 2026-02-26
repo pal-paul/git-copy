@@ -27,12 +27,13 @@ This repository uses a two-phase binary management strategy to keep development 
 - **Trigger**: Push to `master` (including merged PRs)
 - **Purpose**: Prepares release artifacts in two steps:
   1. Builds Linux action binary and opens a dedicated PR containing only `cmd/app-git-copy`
-  2. Creates (or updates) a GitHub draft release for manual publishing
+  2. Creates (or updates) a GitHub draft release and uploads cross-platform binaries + checksums
 - **Features**:
   - Runs test suite before building
   - Builds optimized binary with `-ldflags="-s -w"`
   - Opens an isolated binary-update PR automatically
   - Keeps release as draft so maintainers control final publish timing
+  - Attaches release assets (`linux/amd64`, `linux/arm64`, `darwin/amd64`, `darwin/arm64`, `windows/amd64`, plus `.zip` and `.tar.gz` archives, and `checksums.txt`)
 
 ## Benefits
 
