@@ -16,6 +16,22 @@ A GitHub Action for copying files and directories between repositories with batc
 
 ## Usage
 
+### Version Pinning
+
+Use one of these depending on your update policy:
+
+- Latest patch/minor within major `v3`:
+
+```yaml
+uses: pal-paul/git-copy@v3
+```
+
+- Exact immutable version:
+
+```yaml
+uses: pal-paul/git-copy@v3.0.2
+```
+
 ### Basic File Copy
 
 Copy a single file from one repository to another:
