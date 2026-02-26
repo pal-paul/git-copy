@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy config file to destination repo
         uses: pal-paul/git-copy@v2.1.4
@@ -46,7 +46,7 @@ jobs:
           pull_message: "🔧 Update production config from master repo"
           pull_description: |
             Automated config sync from ${{ github.repository }}
-            
+
             **Changes:**
             - Updated production configuration
             - Synced from commit: ${{ github.sha }}
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy documentation to public repo
         uses: pal-paul/git-copy@v2.1.4
@@ -87,17 +87,17 @@ jobs:
           pull_message: "📚 Sync API documentation"
           pull_description: |
             🔄 **Automated Documentation Sync**
-            
+
             **Source:** ${{ github.repository }}
             **Commit:** ${{ github.sha }}
             **Triggered by:** ${{ github.event_name }}
-            
+
             **Updated Documentation:**
             - API specifications
             - Code examples  
             - Integration guides
             - Troubleshooting sections
-            
+
             **Review Required:** Documentation team review needed before merge.
           team_reviewers: "docs-team"
           reviewers: "tech-writer-lead"
@@ -118,30 +118,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy shared libraries to partner organization
         uses: pal-paul/git-copy@v2.1.4
         with:
           owner: "partner-org"
           repo: "shared-components"
-          token: "${{ secrets.PARTNER_ORG_TOKEN }}"  # Important: Use cross-org token
+          token: "${{ secrets.PARTNER_ORG_TOKEN }}" # Important: Use cross-org token
           directory: "lib/shared/"
           destination_directory: "vendor/your-org-libs/"
           branch: "update-shared-libs-${{ github.event.release.tag_name }}"
           pull_message: "📦 Update shared libraries to ${{ github.event.release.tag_name }}"
           pull_description: |
             🚀 **Shared Library Update**
-            
+
             **Release:** ${{ github.event.release.name }}
             **Tag:** ${{ github.event.release.tag_name }}
             **Release Notes:** ${{ github.event.release.html_url }}
-            
+
             **Updated Components:**
             - Core utilities
             - Authentication helpers
             - Data processing modules
-            
+
             **Breaking Changes:** See release notes for migration guide.
           reviewers: "integration-team"
           team_reviewers: "shared-lib-maintainers"
@@ -160,14 +160,14 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment'
+        description: "Target environment"
         required: true
-        default: 'dev'
+        default: "dev"
         type: choice
         options:
-        - dev
-        - staging
-        - production
+          - dev
+          - staging
+          - production
 
 jobs:
   deploy-dev:
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Deploy to Dev Environment
         uses: pal-paul/git-copy@v2.1.4
@@ -189,7 +189,7 @@ jobs:
           pull_message: "🚀 Update dev environment settings"
           pull_description: |
             **Development Environment Update**
-            
+
             **Source:** ${{ github.repository }}
             **Environment:** Development
             **Auto-merge:** Safe for dev environment
@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Deploy to Staging Environment
         uses: pal-paul/git-copy@v2.1.4
@@ -214,7 +214,7 @@ jobs:
           pull_message: "🧪 Update staging environment settings"
           pull_description: |
             **Staging Environment Update**
-            
+
             **Environment:** Staging
             **Approval Required:** DevOps team approval needed
             **Testing:** Requires validation before production
@@ -223,10 +223,10 @@ jobs:
   deploy-production:
     if: github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
-    environment: production  # Requires approval
+    environment: production # Requires approval
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Deploy to Production Environment
         uses: pal-paul/git-copy@v2.1.4
@@ -240,12 +240,12 @@ jobs:
           pull_message: "🔥 PRODUCTION: Update production environment settings"
           pull_description: |
             🚨 **PRODUCTION ENVIRONMENT UPDATE**
-            
+
             **Environment:** Production
             **Approval Required:** Manager approval mandatory
             **Impact:** Live system configuration changes
             **Rollback Plan:** Previous config available in git history
-            
+
             **Checklist:**
             - [ ] Configuration validated in staging
             - [ ] Backup plan confirmed
@@ -273,10 +273,14 @@ jobs:
         config:
           - { file: "database.yml", env: "production", reviewers: "dba-team" }
           - { file: "api.yml", env: "staging", reviewers: "backend-team" }
-          - { file: "frontend.yml", env: "development", reviewers: "frontend-team" }
+          - {
+              file: "frontend.yml",
+              env: "development",
+              reviewers: "frontend-team",
+            }
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check if config file changed
         id: changes
@@ -316,7 +320,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy shared libraries to partner organization
         uses: pal-paul/git-copy@v2.1.4
@@ -330,7 +334,7 @@ jobs:
           pull_message: "📦 Update shared libraries to ${{ github.event.release.tag_name }}"
           pull_description: |
             Updated shared libraries from ${{ github.repository }}
-            
+
             Release: ${{ github.event.release.name }}
             Tag: ${{ github.event.release.tag_name }}
             Release Notes: ${{ github.event.release.html_url }}
@@ -355,7 +359,7 @@ jobs:
       api-changed: ${{ steps.changes.outputs.api }}
       frontend-changed: ${{ steps.changes.outputs.frontend }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v2
         id: changes
         with:
@@ -373,7 +377,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy database config
         uses: pal-paul/git-copy@v2.1.4
@@ -392,7 +396,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Copy API config
         uses: pal-paul/git-copy@v2.1.4
@@ -410,31 +414,31 @@ jobs:
 
 ### Required Parameters
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `owner` | Target repository owner/organization | `"your-org"` |
-| `repo` | Target repository name | `"destination-repo"` |
-| `token` | GitHub token with repository access | `"${{ secrets.GITHUB_TOKEN }}"` |
+| Parameter | Description                          | Example                         |
+| --------- | ------------------------------------ | ------------------------------- |
+| `owner`   | Target repository owner/organization | `"your-org"`                    |
+| `repo`    | Target repository name               | `"destination-repo"`            |
+| `token`   | GitHub token with repository access  | `"${{ secrets.GITHUB_TOKEN }}"` |
 
 ### File Operation Parameters (choose one)
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `file_path` | Source file path to copy | `"config/app.json"` |
+| Parameter               | Description                                  | Example                     |
+| ----------------------- | -------------------------------------------- | --------------------------- |
+| `file_path`             | Source file path to copy                     | `"config/app.json"`         |
 | `destination_file_path` | Target file path (required with `file_path`) | `"configs/production.json"` |
-| `directory` | Source directory to copy | `"docs/"` |
-| `destination_directory` | Target directory (required with `directory`) | `"api-docs/"` |
+| `directory`             | Source directory to copy                     | `"docs/"`                   |
+| `destination_directory` | Target directory (required with `directory`) | `"api-docs/"`               |
 
 ### Optional Parameters
 
-| Parameter | Description | Default | Example |
-|-----------|-------------|---------|---------|
-| `branch` | Target branch name | `"update-branch"` | `"feature/config-update"` |
-| `ref_branch` | Source branch to branch from | `"master"` | `"master"` |
-| `pull_message` | Pull request title | Auto-generated | `"Update configuration"` |
-| `pull_description` | Pull request description | Auto-generated | `"Automated sync from master repo"` |
-| `reviewers` | Comma-separated list of reviewers | None | `"user1,user2,user3"` |
-| `team_reviewers` | Comma-separated list of team reviewers | None | `"team1,team2"` |
+| Parameter          | Description                            | Default           | Example                             |
+| ------------------ | -------------------------------------- | ----------------- | ----------------------------------- |
+| `branch`           | Target branch name                     | `"update-branch"` | `"feature/config-update"`           |
+| `ref_branch`       | Source branch to branch from           | `"master"`        | `"master"`                          |
+| `pull_message`     | Pull request title                     | Auto-generated    | `"Update configuration"`            |
+| `pull_description` | Pull request description               | Auto-generated    | `"Automated sync from master repo"` |
+| `reviewers`        | Comma-separated list of reviewers      | None              | `"user1,user2,user3"`               |
+| `team_reviewers`   | Comma-separated list of team reviewers | None              | `"team1,team2"`                     |
 
 ### Example with All Parameters
 
@@ -446,18 +450,18 @@ jobs:
     owner: "your-org"
     repo: "destination-repo"
     token: "${{ secrets.GITHUB_TOKEN }}"
-    
+
     # File operation (choose file OR directory)
     file_path: "config/app.json"
     destination_file_path: "configs/production.json"
-    
+
     # Optional
     branch: "config-update-${{ github.sha }}"
     ref_branch: "master"
     pull_message: "🚀 Update production configuration"
     pull_description: |
       Automated configuration update from ${{ github.repository }}
-      
+
       Changes include:
       - Updated API endpoints
       - New feature flags
@@ -470,21 +474,21 @@ jobs:
 
 All input parameters for the git-copy action:
 
-| Parameter | Description | Required | Default | Example |
-|-----------|-------------|----------|---------|---------|
-| `owner` | GitHub owner/organization name of destination repo | ✅ Yes | - | `"your-org"` |
-| `repo` | GitHub repository name of destination repo | ✅ Yes | - | `"target-repo"` |
-| `token` | GitHub token with repo access | ✅ Yes | - | `"${{ secrets.GITHUB_TOKEN }}"` |
-| `ref_branch` | Base branch of destination repo | ❌ No | `master` | `"main"`, `"develop"` |
-| `branch` | Branch name for the pull request | ❌ No | Auto-generated | `"config-update-123"` |
-| `file_path` | Path to source file (for single file copy) | ❌ No* | - | `"config/app.json"` |
-| `destination_file_path` | Destination path for the file | ❌ No* | Same as source | `"configs/production.json"` |
-| `directory` | Path to source directory (for directory copy) | ❌ No* | - | `"docs/"` |
-| `destination_directory` | Destination path for directory | ❌ No* | Same as source | `"public-docs/"` |
-| `pull_message` | Pull request title | ❌ No | Auto-generated | `"Update configuration"` |
-| `pull_description` | Pull request description | ❌ No | Auto-generated | `"Automated sync from master repo"` |
-| `reviewers` | Comma-separated list of reviewers | ❌ No | None | `"user1,user2,user3"` |
-| `team_reviewers` | Comma-separated list of team reviewers | ❌ No | None | `"team1,team2"` |
+| Parameter               | Description                                        | Required | Default        | Example                             |
+| ----------------------- | -------------------------------------------------- | -------- | -------------- | ----------------------------------- |
+| `owner`                 | GitHub owner/organization name of destination repo | ✅ Yes   | -              | `"your-org"`                        |
+| `repo`                  | GitHub repository name of destination repo         | ✅ Yes   | -              | `"target-repo"`                     |
+| `token`                 | GitHub token with repo access                      | ✅ Yes   | -              | `"${{ secrets.GITHUB_TOKEN }}"`     |
+| `ref_branch`            | Base branch of destination repo                    | ❌ No    | `master`       | `"main"`, `"develop"`               |
+| `branch`                | Branch name for the pull request                   | ❌ No    | Auto-generated | `"config-update-123"`               |
+| `file_path`             | Path to source file (for single file copy)         | ❌ No\*  | -              | `"config/app.json"`                 |
+| `destination_file_path` | Destination path for the file                      | ❌ No\*  | Same as source | `"configs/production.json"`         |
+| `directory`             | Path to source directory (for directory copy)      | ❌ No\*  | -              | `"docs/"`                           |
+| `destination_directory` | Destination path for directory                     | ❌ No\*  | Same as source | `"public-docs/"`                    |
+| `pull_message`          | Pull request title                                 | ❌ No    | Auto-generated | `"Update configuration"`            |
+| `pull_description`      | Pull request description                           | ❌ No    | Auto-generated | `"Automated sync from master repo"` |
+| `reviewers`             | Comma-separated list of reviewers                  | ❌ No    | None           | `"user1,user2,user3"`               |
+| `team_reviewers`        | Comma-separated list of team reviewers             | ❌ No    | None           | `"team1,team2"`                     |
 
 **\* Note:** Either `file_path` OR `directory` must be provided (not both).
 
@@ -513,11 +517,11 @@ destination_directory: "public-docs/"
 pull_message: "🔧 Update production configuration"
 pull_description: |
   **Configuration Update**
-  
+
   - Updated production settings
   - Synced from ${{ github.repository }}
   - Commit: ${{ github.sha }}
-  
+
   **Review Checklist:**
   - [ ] Configuration values are correct
   - [ ] No sensitive data exposed
@@ -530,9 +534,9 @@ team_reviewers: "platform-team,security-team"
 
 ```yaml
 # Advanced branch and token configuration
-ref_branch: "main"                    # Target base branch
-branch: "auto-update-${{ github.run_number }}"  # Dynamic branch name
-token: "${{ secrets.CROSS_ORG_TOKEN }}"         # Cross-org token
+ref_branch: "main" # Target base branch
+branch: "auto-update-${{ github.run_number }}" # Dynamic branch name
+token: "${{ secrets.CROSS_ORG_TOKEN }}" # Cross-org token
 ```
 
 ## Common Use Cases
@@ -673,7 +677,7 @@ When copying to a different organization, ensure the token has access to the tar
 # ❌ Using default GITHUB_TOKEN for cross-org copy
 token: "${{ secrets.GITHUB_TOKEN }}"  # Only works within same repository
 
-# ✅ Using organization or personal token 
+# ✅ Using organization or personal token
 token: "${{ secrets.CROSS_ORG_TOKEN }}"  # Has access to target repository
 ```
 
@@ -701,7 +705,7 @@ This error occurs when the GitHub token doesn't have proper permissions to acces
    ```yaml
    # ❌ Default GITHUB_TOKEN doesn't work across organizations
    token: "${{ secrets.GITHUB_TOKEN }}"
-   
+
    # ✅ Use Personal Access Token or Organization Token
    token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
    ```
@@ -717,10 +721,10 @@ This error occurs when the GitHub token doesn't have proper permissions to acces
    ```bash
    # For private repositories
    repo
-   
-   # For public repositories  
+
+   # For public repositories
    public_repo
-   
+
    # For organization repositories
    repo, read:org
    ```
@@ -800,7 +804,7 @@ Triggered on: Push to `master`/`master`, Pull requests to `master`/`master`
 
 **Test Matrix:**
 
-- **Go versions**: 1.21, 1.22
+- **Go versions**: 1.26, 1.24
 - **Operating System**: Ubuntu Latest
 - **Test Types**: Unit, Integration, Race Detection, Coverage
 
