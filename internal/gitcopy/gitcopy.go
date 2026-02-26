@@ -103,6 +103,15 @@ func ReadFile(path string) ([]byte, error) {
 	return byteValue, nil
 }
 
+func isNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errText := strings.ToLower(err.Error())
+	return strings.Contains(errText, "404") || strings.Contains(errText, "not found")
+}
+
 // RunApplication executes the master application logic
 func RunApplication() {
 	var refBranch string
@@ -240,7 +249,10 @@ func RunApplication() {
 
 			fileObj, err := gitObj.GetAFile(refBranch, destinationFile)
 			if err != nil {
-				continue
+				if !isNotFoundError(err) {
+					log.Printf("ERROR: could not fetch destination file %s on branch %s: %v", destinationFile, refBranch, err)
+					continue
+				}
 			}
 
 			encoded := b64.StdEncoding.EncodeToString(fileContent)
