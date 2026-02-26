@@ -36,5 +36,5 @@ jobs:
                   fi
 
                   echo "Updating ${major_tag} -> ${RELEASE_TAG} (${target_sha})"
-                  git tag -fa "${major_tag}" -m "Update ${major_tag} to ${RELEASE_TAG}" "${target_sha}"
+                  git tag -f "${major_tag}" "${target_sha}"
                   git push origin "refs/tags/${major_tag}" --force
