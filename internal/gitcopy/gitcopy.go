@@ -115,6 +115,7 @@ func isNotFoundError(err error) bool {
 // RunApplication executes the master application logic
 func RunApplication() {
 	var refBranch string
+	var compareBranch string
 
 	if envVar.Input.FilePath != "" && envVar.Input.DestinationFilePath == "" {
 		log.Fatal("ERROR: missing input 'destination_file file'")
@@ -168,9 +169,14 @@ func RunApplication() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			compareBranch = refBranch
 		} else {
-			refBranch = envVar.Input.Branch
+			compareBranch = envVar.Input.Branch
 		}
+	}
+
+	if compareBranch == "" {
+		compareBranch = refBranch
 	}
 
 	var messages []string
@@ -184,7 +190,7 @@ func RunApplication() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fileObj, err := gitObj.GetAFile(refBranch, envVar.Input.DestinationFilePath)
+		fileObj, err := gitObj.GetAFile(compareBranch, envVar.Input.DestinationFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -247,7 +253,7 @@ func RunApplication() {
 				continue
 			}
 
-			fileObj, err := gitObj.GetAFile(refBranch, destinationFile)
+			fileObj, err := gitObj.GetAFile(compareBranch, destinationFile)
 			if err != nil {
 				if !isNotFoundError(err) {
 					log.Printf("ERROR: could not fetch destination file %s on branch %s: %v", destinationFile, refBranch, err)
@@ -256,12 +262,16 @@ func RunApplication() {
 			}
 
 			encoded := b64.StdEncoding.EncodeToString(fileContent)
+			normalizedDestinationContent := ""
+			if fileObj != nil {
+				normalizedDestinationContent = strings.ReplaceAll(fileObj.Content, "\n", "")
+			}
 			fileOp := git.FileOperation{
 				Path:    destinationFile,
-				Content: encoded,
+				Content: string(fileContent),
 			}
 			if fileObj != nil {
-				if encoded != fileObj.Content {
+				if encoded != normalizedDestinationContent {
 					fileOp.Sha = fileObj.Sha
 					batch.Files = append(batch.Files, fileOp)
 				}
