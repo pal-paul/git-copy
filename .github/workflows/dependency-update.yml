@@ -13,12 +13,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
         with:
           token: ${{ secrets.BOT_TOKEN }}
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6.4.0
         with:
           go-version-file: "go.mod"
 
@@ -42,7 +42,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.changes.outputs.no_changes == 'false'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8.1.1
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: "chore: update Go dependencies"
@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
         with:
           token: ${{ secrets.BOT_TOKEN }}
 
@@ -104,7 +104,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.changes.outputs.no_changes == 'false'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8.1.1
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: "chore: update GitHub Actions to latest versions"
@@ -147,10 +147,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6.4.0
         with:
           go-version-file: "go.mod"
 
@@ -165,7 +165,7 @@ jobs:
 
       - name: Create issue for vulnerabilities
         if: failure()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             github.rest.issues.create({
